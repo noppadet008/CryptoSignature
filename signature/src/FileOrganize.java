@@ -20,31 +20,54 @@ import java.io.OutputStream;
  */
 public class FileOrganize {
 
+    private String INPUT_FILE_NAME = "a.pdf";
+    private String OUTPUT_FILE_NAME = "output.pdf";
+
+    public FileOrganize() {
+
+    }
+
     /**
      * Run the example.
      */
     public static void main(String... args) {
 
         // Change these settings before running this class.
-        final String INPUT_FILE_NAME = "a.pdf";
-        final String OUTPUT_FILE_NAME = "output.pdf";
 
-        FileOrganize test = new FileOrganize();
 
+        FileOrganize test = new FileOrganize("a.pdf");
         //read in the bytes
         long start = System.currentTimeMillis();
-        byte[] fileContents = test.read(INPUT_FILE_NAME);
+        byte[] fileContents = test.read();
         //test.readAlternateImpl(INPUT_FILE_NAME);
         //write it back out to a different file name
-        test.write(fileContents, OUTPUT_FILE_NAME);
+        test.write(fileContents);
         long end = System.currentTimeMillis();
         log((end - start) / 1000.0);
     }
 
     /**
+     *
+     * @param inputFile path of file to read
+     */
+    public FileOrganize(String inputFile){
+        INPUT_FILE_NAME = "/input/"+inputFile;
+        String[] str = inputFile.split("\\.");
+        OUTPUT_FILE_NAME = "/input/"+str[0]+"OP."+str[1];
+    }
+    public String getINPUT_FILE_NAME() {
+        return INPUT_FILE_NAME;
+    }
+
+    public String getOUTPUT_FILE_NAME() {
+        return OUTPUT_FILE_NAME;
+    }
+
+    /**
      * Read the given binary file, and return its contents as a byte array.
      */
-    byte[] read(String aInputFileName) {
+    byte[] read() {
+        String aInputFileName = INPUT_FILE_NAME;
         log("Reading in binary file named : " + aInputFileName);
         File file = new File(aInputFileName);
         log("File size: " + file.length());
@@ -77,7 +100,7 @@ public class FileOrganize {
 
             }
         } catch (FileNotFoundException ex) {
-            log("File not found.");
+            log("File not found. pls check path of file.");
         } catch (IOException ex) {
             log(ex);
         }
@@ -89,9 +112,9 @@ public class FileOrganize {
      * Write a byte array to the given file.
      * Writing binary data is significantly simpler than reading it.
      */
-    void write(byte[] aInput, String aOutputFileName) {
+    void write(byte[] aInput ) {
         log("Writing binary file...");
-
+        String aOutputFileName = OUTPUT_FILE_NAME;
         try (OutputStream output = new BufferedOutputStream(new FileOutputStream(aOutputFileName))) {
             output.write(aInput);
         } catch (FileNotFoundException ex) {

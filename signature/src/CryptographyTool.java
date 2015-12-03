@@ -1,6 +1,6 @@
 import java.util.*;
 
-public class ProjectJunior 
+public class CryptographyTool
 {
 	private static int[] setPower;
 	private static long[] storagePower;
@@ -16,14 +16,14 @@ public class ProjectJunior
 	{
 		System.out.println("Hello World!");
 		//Scanner scan = new Scanner(System.in);
-		
+		CryptographyTool tool = new CryptographyTool();
 		while (true) {
 		
 		log("Please choose menu:\n1.Fast Exponential\n2.Find Inverse\n3.Check Generator\n4.Hash Function (Test Beta)");
 		int a, b, c;
 		System.out.print(">> ");
 		int choose = scan.nextInt();
-
+        String result = "";
 		switch (choose)
 		{
 		case 1:	
@@ -33,7 +33,7 @@ public class ProjectJunior
 			b = scan.nextInt();
 			System.out.print("Modulo: ");
 			c = scan.nextInt();
-			fastExponential(a,b,c);
+			tool.fastExponential(a, b, c);
 			break;
 		
 		case 2:
@@ -41,7 +41,7 @@ public class ProjectJunior
 			a = scan.nextInt();
 			System.out.print("Mod ");
 			b = scan.nextInt();
-			findInverse(a,b);
+			tool.findInverse(a, b);
 			break;
 		
 		case 3:
@@ -49,14 +49,15 @@ public class ProjectJunior
 			a = scan.nextInt();
 			System.out.print("Mod ");
 			b = scan.nextInt();
-			checkGenerator(a,b);
+			tool.checkGenerator(a, b);
 			break;
 		case 4:
-			hashFunction();
+			tool.hashFunction();
 			break;
 
 	
 		}
+        log(result);
 		log("**********************");
 	}
 		
@@ -84,7 +85,7 @@ public class ProjectJunior
      * @param anotherNumber int - a number to find gcd with before param
      * @return a gcd in type int
      */
-	private static int gcd(int firstNumber, int anotherNumber) {
+	  int gcd(int firstNumber, int anotherNumber) {
 		if (anotherNumber == 0) {
 			return firstNumber;
 		}
@@ -102,7 +103,7 @@ public class ProjectJunior
      * @param firstNumber a number
      * @param anotherNumber a number
      */
-	private static void findInverse(double firstNumber, double anotherNumber) {
+	  void findInverse(double firstNumber, double anotherNumber) {
 		if (gcd((int)firstNumber, (int)anotherNumber) != 1) {
 			log("Can't find inverse because they're not relative prime.");
 			return;
@@ -194,7 +195,7 @@ public class ProjectJunior
      * to prove tester is prime
      * @param tester a number to test prime.
      */
-	private static void LehmanTest(int tester) {
+	  void LehmanTest(int tester) {
 		int runNumber, power = (tester-1)/2, prime = 0, composite = 0;
 		for (runNumber = 1; runNumber < tester; runNumber++) {
 			if (gcd(runNumber, tester) > 1)
@@ -212,7 +213,7 @@ public class ProjectJunior
      * method part of fastexponent funcion to create power set
      * @param power a number to represent power
      */
-	private static void factorizationPower(int power) {
+	  void factorizationPower(int power) {
 		int n = 1, powerStart = 1, remain;
 		while (powerStart < power) {
 			powerStart *= 2;
@@ -244,7 +245,7 @@ public class ProjectJunior
      * @param modulate a modulator
      * @return void
      */
-	private static void storagePower(int base, int modulate) {
+	  void storagePower(int base, int modulate) {
 		int n = (int)(Math.log(setPower[0])/Math.log(2))+1;
 		log("\nSize storagePower = " + n);
 		storagePower = new long[n];
@@ -268,13 +269,13 @@ public class ProjectJunior
      * method to multiply in power storage set
      * @param modulation modulator
      */
-	private static void combinationTogether(int modulation) {
+	  void combinationTogether(int modulation) {
 		long sum = 1;
 		int realSize = 0;
-		for (int i=0;i<setPower.length;i++) {
-			if (setPower[i] != 0)
-				realSize++;
-		}
+          for (int aSetPower : setPower) {
+              if (aSetPower != 0)
+                  realSize++;
+          }
 		log("Real size: " + realSize);
 		for (int i=0;i<realSize;i++) {
 			sum = sum*storagePower[(int)(Math.log(setPower[i])/Math.log(2))];
@@ -290,7 +291,7 @@ public class ProjectJunior
      * @param power int - power
      * @param modulation int - modulator
      */
-	private static void fastExponential(int base, int power, int modulation) {
+	  void fastExponential(int base, int power, int modulation) {
 		factorizationPower(power);
 		storagePower(base, modulation);
 		combinationTogether(modulation);
@@ -302,7 +303,7 @@ public class ProjectJunior
      * @param tester int - less than z
      * @param z int - number represent generator set
      */
-	private static void checkGenerator(int tester, int z) {
+	  void checkGenerator(int tester, int z) {
 		if (tester < 1 || tester > z-1) {
 			log("Tester generator must be in range 0<tester<z ");
 			return;
@@ -360,13 +361,12 @@ public class ProjectJunior
 		
 	} // end function checkGeneratorII*/
 
-	public static void hashFunction() {
+	  void hashFunction() {
 		hashStorage = new int[6];
 		int hashResultI = 0;
 		for (int i=0;i<6;i++) {
 			hashStorage[i] = scan.nextInt();
 			hashResultI += (Math.pow(hashStorage[i],(i+1)))%23;
-			
 		}
 		hashResultI = hashResultI % 23;
 		log("hashResultI = " + hashResultI);
@@ -378,7 +378,7 @@ public class ProjectJunior
 
 	} // end function hashFunction (TEST BETA!!)
 
-	public static int circularShift2(int number) {
+	  int circularShift2(int number) {
 		for (int i=0; i<2; i++) {
 			if ((16 & number) == 16) {
 				number = ((number - 16) << 1) + 1;
