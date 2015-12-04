@@ -20,8 +20,8 @@ import java.io.OutputStream;
  */
 public class FileOrganize {
 
-    private String INPUT_FILE_NAME = "a.pdf";
-    private String OUTPUT_FILE_NAME = "output.pdf";
+    private String INPUT_FILE_NAME = "input\\p.pdf";
+    private String OUTPUT_FILE_NAME = "output\\output.pdf";
 
     public FileOrganize() {
 
@@ -35,10 +35,12 @@ public class FileOrganize {
         // Change these settings before running this class.
 
 
-        FileOrganize test = new FileOrganize("a.pdf");
+        FileOrganize test = new FileOrganize("p.pdf");
         //read in the bytes
         long start = System.currentTimeMillis();
         byte[] fileContents = test.read();
+        test.writeText(fileContents);
+        fileContents = test.readText();
         //test.readAlternateImpl(INPUT_FILE_NAME);
         //write it back out to a different file name
         test.write(fileContents);
@@ -51,9 +53,9 @@ public class FileOrganize {
      * @param inputFile path of file to read
      */
     public FileOrganize(String inputFile){
-        INPUT_FILE_NAME = "/input/"+inputFile;
+        INPUT_FILE_NAME = "input\\"+inputFile;
         String[] str = inputFile.split("\\.");
-        OUTPUT_FILE_NAME = "/input/"+str[0]+"OP."+str[1];
+        OUTPUT_FILE_NAME = "output\\"+str[0]+"OP."+str[1];
     }
     public String getINPUT_FILE_NAME() {
         return INPUT_FILE_NAME;
@@ -67,7 +69,14 @@ public class FileOrganize {
      * Read the given binary file, and return its contents as a byte array.
      */
     byte[] read() {
-        String aInputFileName = INPUT_FILE_NAME;
+        return readfile(INPUT_FILE_NAME);
+    }
+
+    byte[] readText(){
+        return readfile("output\\cipher.txt");
+    }
+
+    byte[] readfile(String aInputFileName) {
         log("Reading in binary file named : " + aInputFileName);
         File file = new File(aInputFileName);
         log("File size: " + file.length());
@@ -107,7 +116,6 @@ public class FileOrganize {
         return result;
     }
 
-
     /**
      * Write a byte array to the given file.
      * Writing binary data is significantly simpler than reading it.
@@ -124,6 +132,17 @@ public class FileOrganize {
         }
     }
 
+    void writeText(byte[] aInput ) {
+        log("Writing binary file...");
+        String aOutputFileName = "output\\cipher.txt";
+        try (OutputStream output = new BufferedOutputStream(new FileOutputStream(aOutputFileName))) {
+            output.write(aInput);
+        } catch (FileNotFoundException ex) {
+            log("File not found.");
+        } catch (IOException ex) {
+            log(ex);
+        }
+    }
     /**
      * Read the given binary file, and return its contents as a byte array.
      */

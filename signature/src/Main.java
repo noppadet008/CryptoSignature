@@ -18,6 +18,7 @@ public class Main {
                     "2.Find Inverse\n" +
                     "3.Check Generator\n" +
                     "4.Hash Function (Test Beta)\n" +
+                    "5.Elgamal Encryption\n" +
                     "0.For Exit Program");
             int a, b, c;
             System.out.print(">> ");
@@ -50,7 +51,12 @@ public class Main {
                     tool.checkGenerator(a, b);
                     break;
                 case 4:
-                    tool.hashFunction();
+                    //tool.hashFunction();
+                    tool.lehmanTest(19);
+                    System.out.println("in progress dev");
+                    break;
+                case 5:
+                    tool.encryption(plaintext,0,0);
                     break;
                 case 0:
                     finish = false;
