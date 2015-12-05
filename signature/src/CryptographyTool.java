@@ -115,21 +115,29 @@ public class CryptographyTool {
 
     /**
      * to prove tester is prime Ice edition
+     *
      * @param n a number to test prime.
      * @return true when a is prime (probability)
      */
     boolean lehmanTest(int n) {
-        if(n%2==0 && n<3){
+        if (n % 2 == 0 && n < 3) {
             log("lehman test n only odd and n > 2");
             return false;
         }
         boolean isPrime = true;
-        int power = (n-1)/2;
-        int result;
-        for (int a = 3; a < n; a++) {
-            result = fastfac(a, power, n);
-            isPrime = gcd(a, n) <= 1 && (result == n-1 || result == 1);
-            if (!isPrime) return false;
+        int power = (n - 1) / 2;
+        int result, a;
+        if (n < 300) {
+            for (a = 3; a < n; a++) {
+                result = fastfac(a, power, n);
+                isPrime = gcd(a, n) <= 1 && (result == n - 1 || result == 1);
+            }
+        } else {
+            for (int b = 0; b < 300; b++) {
+                a = (int) (Math.random() * n);
+                result = fastfac(a, power, n);
+                isPrime = gcd(a, n) <= 1 && (result == n - 1 || result == 1);
+            }
         }
         return isPrime;
     } // end function LehmanTest
@@ -228,6 +236,7 @@ public class CryptographyTool {
     /**
      * method check tester is a generator of z
      * inner can show generator all" bug a di "
+     *
      * @param tester int - less than z
      * @param z      int - number represent generator set
      */
@@ -263,7 +272,7 @@ public class CryptographyTool {
             log("checkGenerator[" + i + "] = " + valueGeneratorAfterMod);
             //System.out.println(tester + "^" + i + " mod " + z + " = " + valueGeneratorAfterMod);
         }
-		
+
 		/*log("---------------------------------");
 		for (int r=0;r<z;r++) {
 			log("tableGenerator[" + r + "] = " + tableGenerator[r]);
@@ -277,15 +286,13 @@ public class CryptographyTool {
 		** Status: It's many bugs. << OveRfLoW!!! 
 		*/
 
-	private boolean checkGeneratorII(int tester, int mod) {
-		boolean check = fastfac(tester, (mod - 1) / 2, mod) == 1;
-		System.out.println( fastfac(tester, (mod - 1) / 2, mod));
-		if (check)
-			System.out.println("it's safe prime.");
-		else
-			System.out.println("it's not SAFE prime.");
+    private boolean checkGeneratorII(int tester, int mod) {
+        if (tester < 0) return false;
+        int result = fastfac(tester, (mod - 1) / 2, mod);
+        boolean check = result == 1;
+        //System.out.println(result); //track result
         return check;
-	} // end function checkGeneratorII
+    } // end function checkGeneratorII
 
     /*
       void hashFunction() {
@@ -325,21 +332,22 @@ public class CryptographyTool {
 
     /**
      * fix index out of bound
-     * @param base
-     * @param power
-     * @param mod
-     * @return
+     * of fast factorization
+     * @param base base
+     * @param power power
+     * @param mod modulator
+     * @return base^power
      */
-    int fastfac(int base,int power,int mod){
-        if(power == 0)return 1;
+    int fastfac(int base, int power, int mod) {
+        if (power == 0) return 1;
         int count = power;
-        int result = base;
-        while(count>1){
+        long result = base;//prevent overflow
+        while (count > 1) {
             result *= result;
             result %= mod;
-            count = count>>1;
+            count = count >> 1;
         }
-        return result;
+        return Math.toIntExact(result);
     }
 
     /**
@@ -347,16 +355,39 @@ public class CryptographyTool {
      *
      * @return int-generate form first 10 bit of file
      */
-    public int generateP() {
+    public int generateP(int bitCount) {
         FileOrganize file = new FileOrganize();
-        byte[] pick = file.read();
-        int i = (pick[0] << 2) & 0x000001fd |
-                ((pick[1]) & 0x00000002);
-        if(i%2==0)i++;
-        while(!lehmanTest(i)){
-            if(i < 13) {//prevent overflow case
-                i = 13;
+        byte[] content = file.read();
+        int i = 0, index = 0;
+        byte pick = content[index];
+        log("init bitGroupP");
+        // initial bitGroup
+        for (int j = 0; j < bitCount; j++) {
+            i <<= 1;
+            i += (pick & 0b1);
+            pick >>= 1;
+            if (j % 7 == 0) {
+                index++;
+                pick = content[index];
             }
+        }
+        log("shifting");
+        //shift for 1 in LSB
+        int mask = 0b1 << (bitCount - 1);
+        while ((i & mask) == 0) {
+            if (pick == 0) {//pick the next byte
+                index++;
+                pick = content[index];
+            }
+            i <<= 1;
+            i &= (mask << 1);//cut MSB
+            i += (pick & 0b1);//add LSB
+            pick >>= 1;
+        }
+        if (i % 2 == 0) i++;
+        log("lehmann testing and increasing when false ");
+        //increse one if not prime
+        while (!lehmanTest(i)) {
             i += 2;
         }
         log("got p");
@@ -364,57 +395,71 @@ public class CryptographyTool {
     }
 
     /**
-     *
      * @param plaintext a plaintext want to encrypt
-     * @param sk private key
+     * @param sk        private key
      * @param generator a generator
      * @return
      */
-    public int[][] encryption(byte[] plaintext, int sk, int generator) {
+    public int[][] encryption(byte[] plaintext, int sk, int generator, int bitCount) {
 
         //create key
-        int p = generateP();
-        int i = p;
-        int k = (int)((Math.random()*(p-2))+2);
-        int bitCountP = 0; //no. of bit group
+        int p = generateP(bitCount);
+        int count = 0;//count for tracking
+
+        // gen k
+        int k = -1;// -1 mean not init
+        while (k < 1 || gcd(k, p - 1) != 1) {
+            count++;
+            k = (int) ((Math.random() * (p - 2)) + 2);
+        }
+        log("got k false " + count + " time");
+        /*int bitCountP = 0; //no. of bit group
         while (i > 0) {//count how many bit can assign to 1 block
             i = i >> 1;
             bitCountP++;
-        }
-        log("gain p = " + p + " group of bit " + bitCountP);
+        }*/
+        log("gain p = " + p + " group of bit " + bitCount);
         //prevent generator out of set Z
-        if(generator>=p || generator<2){
+        if (generator >= p || generator < 2) {
             log("not in set Z reset to 0");
             generator = 2;
         }
-
-        while(!checkGeneratorII(generator,p)){
-            log(generator + " generator is not be use increment one");
+        count = 0;//reset count for track next
+        while (!checkGeneratorII(generator, p)) {
+            count++;
             generator++;
         }
-
+        log("false " + count + " time");
         //create public key
-        int y = fastfac(generator,k,p);
-        log("generator = " +generator+
-                " k is "+k+
-                " y is "+y);
+        int y = fastfac(generator, sk, p);
+        log("generator = " + generator +
+                " k is " + k +
+                " y is " + y);
 
-        int sizeOfCiphertext = (plaintext.length*8)/bitCountP;
-        int remindSize = (plaintext.length*8)%bitCountP;//check padding?
-        int cryptogram[][] = new int[sizeOfCiphertext+1][2];
-        log("cipher text size is "+sizeOfCiphertext+" remind "+remindSize);
+        int sizeOfCiphertext = (plaintext.length * 8) / bitCount;
+        int remindSize = (plaintext.length * 8) % bitCount;//check padding?
+        int cryptogram[][] = new int[sizeOfCiphertext + 1][2];
+        log("cipher text size is " + sizeOfCiphertext + " remind " + remindSize);
         //encryption
+        int index = 0;//for point cryptogram
         int temp;//assign temp value
-        int count;/// assign count
-        for(byte b:plaintext){
+        boolean[] block = new boolean[bitCount];//create for exact bit(all value false)
+        int a = fastfac(generator, k, p);
+        //iterate all plaintext
+        for (byte b : plaintext) {
             boolean[] bitGroup = Bit.toBit(b);
-
-
-        }
-
-
-
-        return null;
+            for (boolean bit : bitGroup) {
+                block[index] = bit;
+                index++;
+                if (index >= bitCount) {//when collect full block assign to crytogram
+                    cryptogram[index][0] = a;
+                    cryptogram[index][1] = fastfac(y, k, p) * Bit.fromBit(block);
+                    Arrays.fill(block, false);//fill false for all bit
+                    index = 0;
+                }
+            }
+        }//complete crytogram with pading all
+        return cryptogram;
     }
 
 

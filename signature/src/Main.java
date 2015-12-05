@@ -1,4 +1,6 @@
+import java.util.Date;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 /**
  * PACKAGE_NAME
@@ -7,6 +9,7 @@ import java.util.Scanner;
  */
 public class Main {
     public static void main(String args[]){
+        long startTime, endTime;
         FileOrganize file = new FileOrganize();
         byte[] plaintext = file.read();
         Scanner scan = new Scanner(System.in);
@@ -22,8 +25,16 @@ public class Main {
                     "0.For Exit Program");
             int a, b, c;
             System.out.print(">> ");
-            int choose = scan.nextInt();
+            int choose;
+            try {
+                choose = scan.nextInt();
+            } catch (Exception e) {
+                System.err.print(e + "\n");
+                scan.nextLine();//flush data scan
+                continue;
+            }
             String result = "";
+            startTime = System.currentTimeMillis();
             switch (choose) {
                 case 1:
                     System.out.print("Base: ");
@@ -56,13 +67,20 @@ public class Main {
                     System.out.println("in progress dev");
                     break;
                 case 5:
-                    tool.encryption(plaintext,0,0);
+                    int[][] ciphertxt = tool.encryption(plaintext, 99, 1222, 23);
                     break;
                 case 0:
                     finish = false;
                     result = "ขอบคุณที่ใช้บริการค่ะ";
                     break;
             }
+            endTime = System.currentTimeMillis();
+            String time = String.format("time to use %d m %2d.%d s ",
+                    (int) (((endTime - startTime) / (1000 * 60)) % 60),
+                    (int) (((endTime - startTime) / 1000) % 60),
+                    (int) ((endTime - startTime) % 1000)
+            );
+            System.out.println(time);
             System.out.println(result);
         }
 

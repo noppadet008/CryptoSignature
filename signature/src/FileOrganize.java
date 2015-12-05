@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Scanner;
 
 /**
  * Converting binary data into different forms.
@@ -35,7 +36,7 @@ public class FileOrganize {
         // Change these settings before running this class.
 
 
-        FileOrganize test = new FileOrganize("p.pdf");
+        FileOrganize test = new FileOrganize("p.txt");
         //read in the bytes
         long start = System.currentTimeMillis();
         byte[] fileContents = test.read();
@@ -76,6 +77,7 @@ public class FileOrganize {
         return readfile("output\\cipher.txt");
     }
 
+
     byte[] readfile(String aInputFileName) {
         log("Reading in binary file named : " + aInputFileName);
         File file = new File(aInputFileName);
@@ -105,7 +107,7 @@ public class FileOrganize {
                     log("result[" + i+1 + "] = " + result[i]);
                 }*/
                 log("Size: " + result.length);
-                log("Closing input stream.");
+                log("Closing input stream.\n*****************************************");
 
             }
         } catch (FileNotFoundException ex) {
@@ -191,6 +193,17 @@ public class FileOrganize {
             log(ex);
         }
         return (result!=null)? result.toByteArray() : null ;//if null return (Null pointer case)
+    }
+
+    public Scanner getFileReader() {
+        try {
+            File file = new File(INPUT_FILE_NAME);
+            Scanner sc = new Scanner(file);
+            return sc;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private static void log(Object aThing) {
