@@ -274,7 +274,7 @@ public class CryptographyTool {
         }
 
 		/*log("---------------------------------");
-		for (int r=0;r<z;r++) {
+        for (int r=0;r<z;r++) {
 			log("tableGenerator[" + r + "] = " + tableGenerator[r]);
 		}*/
 
@@ -333,17 +333,21 @@ public class CryptographyTool {
     /**
      * fix index out of bound
      * of fast factorization
-     * @param base base
+     *
+     * @param base  base
      * @param power power
-     * @param mod modulator
+     * @param mod   modulator
      * @return base^power
      */
     int fastfac(int base, int power, int mod) {
         if (power == 0) return 1;
         int count = power;
-        long result = base;//prevent overflow
+        long preOomputation = base;
+        long result = 1;//prevent overflow
         while (count > 1) {
-            result *= result;
+            if ((count & 0b1) == 1)
+                result *= preOomputation;
+            preOomputation *= preOomputation;
             result %= mod;
             count = count >> 1;
         }
@@ -442,20 +446,21 @@ public class CryptographyTool {
         log("cipher text size is " + sizeOfCiphertext + " remind " + remindSize);
         //encryption
         int index = 0;//for point cryptogram
-        int temp;//assign temp value
+        int bitPointer = 0;//pointbit
         boolean[] block = new boolean[bitCount];//create for exact bit(all value false)
         int a = fastfac(generator, k, p);
         //iterate all plaintext
         for (byte b : plaintext) {
             boolean[] bitGroup = Bit.toBit(b);
             for (boolean bit : bitGroup) {
-                block[index] = bit;
-                index++;
-                if (index >= bitCount) {//when collect full block assign to crytogram
+                block[bitPointer] = bit;
+                bitPointer++;
+                if (bitPointer >= bitCount) {//when collect full block assign to crytogram
                     cryptogram[index][0] = a;
                     cryptogram[index][1] = fastfac(y, k, p) * Bit.fromBit(block);
                     Arrays.fill(block, false);//fill false for all bit
-                    index = 0;
+                    index++;
+                    bitPointer = 0;
                 }
             }
         }//complete crytogram with pading all

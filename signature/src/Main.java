@@ -68,6 +68,7 @@ public class Main {
                     break;
                 case 5:
                     int[][] ciphertxt = tool.encryption(plaintext, 99, 1222, 23);
+                    file.writeCipherTxt(ciphertxt);
                     break;
                 case 0:
                     finish = false;

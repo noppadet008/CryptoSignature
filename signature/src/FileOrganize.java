@@ -134,7 +134,7 @@ public class FileOrganize {
         }
     }
 
-    void writeText(byte[] aInput ) {
+    void writeText(byte[] aInput) {//test version
         log("Writing binary file...");
         String aOutputFileName = "output\\cipher.txt";
         try (OutputStream output = new BufferedOutputStream(new FileOutputStream(aOutputFileName))) {
@@ -144,6 +144,23 @@ public class FileOrganize {
         } catch (IOException ex) {
             log(ex);
         }
+    }
+
+    void writeCipherTxt(int[][] cipherTxt) {
+        log("Writing binary file...");
+        String aOutputFileName = "output\\cipher.txt";
+        try (OutputStream output = new BufferedOutputStream(new FileOutputStream(aOutputFileName))) {
+            for (int[] cryptogram : cipherTxt) {
+                String form = String.format("(%d,%d)\n", cryptogram[0], cryptogram[1]);
+                output.write(form.getBytes());
+            }
+
+        } catch (FileNotFoundException ex) {
+            log("File not found.");
+        } catch (IOException ex) {
+            log(ex);
+        }
+        log("complete");
     }
     /**
      * Read the given binary file, and return its contents as a byte array.
