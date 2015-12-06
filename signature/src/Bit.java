@@ -66,5 +66,11 @@ public class Bit {
         return i;
     }
 
+    public static void paintByte(boolean[] group) {
+        for (boolean e : x) {
+            System.out.print((e) ? 1 : 0);
+        }
+    }
+
 
 }

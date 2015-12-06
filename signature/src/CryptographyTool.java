@@ -348,6 +348,7 @@ public class CryptographyTool {
             if ((count & 0b1) == 1)
                 result *= preOomputation;
             preOomputation *= preOomputation;
+            preOomputation %= mod;
             result %= mod;
             count = count >> 1;
         }
@@ -404,7 +405,7 @@ public class CryptographyTool {
      * @param generator a generator
      * @return
      */
-    public int[][] encryption(byte[] plaintext, int sk, int generator, int bitCount) {
+    public int[][] encryption(byte[] plaintext, int sk, int bitCount) {
 
         //create key
         int p = generateP(bitCount);
@@ -423,6 +424,8 @@ public class CryptographyTool {
             bitCountP++;
         }*/
         log("gain p = " + p + " group of bit " + bitCount);
+
+        int generator = -1;//not init
         //prevent generator out of set Z
         if (generator >= p || generator < 2) {
             log("not in set Z reset to 0");
@@ -431,7 +434,7 @@ public class CryptographyTool {
         count = 0;//reset count for track next
         while (!checkGeneratorII(generator, p)) {
             count++;
-            generator++;
+            generator = (int) (Math.random() * p);
         }
         log("false " + count + " time");
         //create public key
@@ -440,15 +443,16 @@ public class CryptographyTool {
                 " k is " + k +
                 " y is " + y);
 
-        int sizeOfCiphertext = (plaintext.length * 8) / bitCount;
+        int sizeOfCiphertext = (plaintext.length * 8) / bitCount;//byte * 8 / n
         int remindSize = (plaintext.length * 8) % bitCount;//check padding?
         int cryptogram[][] = new int[sizeOfCiphertext + 1][2];
         log("cipher text size is " + sizeOfCiphertext + " remind " + remindSize);
         //encryption
         int index = 0;//for point cryptogram
-        int bitPointer = 0;//pointbit
+        int bitPointer = 0;//pointer of bit
         boolean[] block = new boolean[bitCount];//create for exact bit(all value false)
         int a = fastfac(generator, k, p);
+        long cb;//to assigntemp value;
         //iterate all plaintext
         for (byte b : plaintext) {
             boolean[] bitGroup = Bit.toBit(b);
@@ -457,14 +461,24 @@ public class CryptographyTool {
                 bitPointer++;
                 if (bitPointer >= bitCount) {//when collect full block assign to crytogram
                     cryptogram[index][0] = a;
-                    cryptogram[index][1] = fastfac(y, k, p) * Bit.fromBit(block);
+                    cb = (fastfac(y, k, p) * Bit.fromBit(block)) % p;
+                    cryptogram[index][1] = Math.toIntExact(cb);
                     Arrays.fill(block, false);//fill false for all bit
                     index++;
                     bitPointer = 0;
                 }
             }
-        }//complete crytogram with pading all
+        }
+        cryptogram[index][0] = a;
+        cb = (fastfac(y, k, p) * Bit.fromBit(block)) % p;
+        cryptogram[index][1] = Math.toIntExact(cb);
+        //complete crytogram with padding all
         return cryptogram;
+    }
+
+
+    public byte decryption(int[][] cipherText) {
+
     }
 
 
