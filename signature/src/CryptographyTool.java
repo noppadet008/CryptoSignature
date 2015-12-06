@@ -5,6 +5,10 @@ public class CryptographyTool {
     private static long[] storagePower;
     private static int[] hashStorage;
 
+    public static void main(String[] arg) {
+        CryptographyTool tool = new CryptographyTool();
+        log(tool.fastfac(7, 6, 11));
+    }
 
     /**
      * method to find gcd with two number
@@ -30,10 +34,10 @@ public class CryptographyTool {
      * @param firstNumber   a number
      * @param anotherNumber a number
      */
-    void findInverse(double firstNumber, double anotherNumber) {
+    int findInverse(double firstNumber, double anotherNumber) {
         if (gcd((int) firstNumber, (int) anotherNumber) != 1) {
             log("Can't find inverse because they're not relative prime.");
-            return;
+            return 0;
             // Go to error!
         }
 
@@ -92,21 +96,20 @@ public class CryptographyTool {
         if (firstNumber == max) {
             //return a2;
             if (a2 < 0) {
-                log("Inverse of " + (int) firstNumber + " mod " +
-                        (int) anotherNumber + " = " + a2 + " = " + ((int) (a2 - anotherNumber * Math.floor(a2 / anotherNumber))));
-                //return (int)(a2-anotherNumber*Math.floor(a2/anotherNumber));
+                //log("Inverse of " + (int) firstNumber + " mod " +
+                //      (int) anotherNumber + " = " + a2 + " = " + ((int) (a2 - anotherNumber * Math.floor(a2 / anotherNumber))));
+                return (int) (a2 - anotherNumber * Math.floor(a2 / anotherNumber));
             } else
-                log("Inverse of " + (int) firstNumber + " mod " + (int) anotherNumber + " = " + a2);
-            //return (int)a2;
+                //log("Inverse of " + (int) firstNumber + " mod " + (int) anotherNumber + " = " + a2);
+                return a2;
         } else {
-            //return b2
             if (b2 < 0) {
-                log("Inverse of " + (int) firstNumber + " mod " +
-                        (int) anotherNumber + " = " + b2 + " = " + ((int) (b2 - anotherNumber * Math.floor(b2 / anotherNumber))));
-                //return (int)(b2-anotherNumber*Math.floor(b2/anotherNumber));
+                //log("Inverse of " + (int) firstNumber + " mod " +
+                //      (int) anotherNumber + " = " + b2 + " = " + ((int) (b2 - anotherNumber * Math.floor(b2 / anotherNumber))));
+                return (int) (b2 - anotherNumber * Math.floor(b2 / anotherNumber));
             } else
-                log("Inverse of " + (int) firstNumber + " mod " + (int) anotherNumber + " = " + b2);
-            //return (int)b2;
+                //log("Inverse of " + (int) firstNumber + " mod " + (int) anotherNumber + " = " + b2);
+                return b2;
         }
 
         //System.out.println(n2 == a2*max+b2*min);
@@ -283,7 +286,7 @@ public class CryptographyTool {
         }
 
     } /* end function checkGenerator
-		** Status: It's many bugs. << OveRfLoW!!! 
+        ** Status: It's many bugs. << OveRfLoW!!!
 		*/
 
     private boolean checkGeneratorII(int tester, int mod) {
@@ -342,14 +345,19 @@ public class CryptographyTool {
     int fastfac(int base, int power, int mod) {
         if (power == 0) return 1;
         int count = power;
-        long preOomputation = base;
-        long result = 1;//prevent overflow
-        while (count > 1) {
-            if ((count & 0b1) == 1)
-                result *= preOomputation;
+        long preOomputation = 1;
+        if (count > 0) {
+            preOomputation *= base;
+            count >>= 1;
+        }
+        long result = preOomputation;//prevent overflow
+        while (count > 0) {
             preOomputation *= preOomputation;
             preOomputation %= mod;
-            result %= mod;
+            if ((count & 0b1) == 1) {
+                result *= preOomputation;
+                result %= mod;
+            }
             count = count >> 1;
         }
         return Math.toIntExact(result);
@@ -402,7 +410,7 @@ public class CryptographyTool {
     /**
      * @param plaintext a plaintext want to encrypt
      * @param sk        private key
-     * @param generator a generator
+     * @param bitCount  a size of bit
      * @return
      */
     public int[][] encryption(byte[] plaintext, int sk, int bitCount) {
@@ -436,7 +444,7 @@ public class CryptographyTool {
             count++;
             generator = (int) (Math.random() * p);
         }
-        log("false " + count + " time");
+        log("generator random false " + count + " time");
         //create public key
         int y = fastfac(generator, sk, p);
         log("generator = " + generator +
@@ -461,7 +469,7 @@ public class CryptographyTool {
                 bitPointer++;
                 if (bitPointer >= bitCount) {//when collect full block assign to crytogram
                     cryptogram[index][0] = a;
-                    cb = (fastfac(y, k, p) * Bit.fromBit(block)) % p;
+                    cb = ((long) Bit.fromBit(block) * fastfac(y, k, p)) % p;
                     cryptogram[index][1] = Math.toIntExact(cb);
                     Arrays.fill(block, false);//fill false for all bit
                     index++;
@@ -470,15 +478,22 @@ public class CryptographyTool {
             }
         }
         cryptogram[index][0] = a;
-        cb = (fastfac(y, k, p) * Bit.fromBit(block)) % p;
+        cb = ((long) Bit.fromBit(block) * fastfac(y, k, p)) % p;
         cryptogram[index][1] = Math.toIntExact(cb);
         //complete crytogram with padding all
         return cryptogram;
     }
 
 
-    public byte decryption(int[][] cipherText) {
-
+    public byte decryption(int[][] cipherText, int p, int u) {
+        log("");
+        int a = cipherText[cipherText.length - 1][0];
+        int b = cipherText[cipherText.length - 1][1];
+        int c = fastfac(a, u, p);
+        c = findInverse(c, p);
+        long result = ((long) c * b) % p;
+        System.out.println(Integer.toBinaryString(Math.toIntExact(result)));
+        return 0;
     }
 
 

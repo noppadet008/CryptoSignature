@@ -70,6 +70,10 @@ public class Main {
                     int[][] ciphertxt = tool.encryption(plaintext, 99, 23);
                     System.out.println(ciphertxt[ciphertxt.length - 1][0]);
                     System.out.println(ciphertxt[ciphertxt.length - 1][1]);
+                    System.out.println(Integer.toBinaryString(plaintext[plaintext.length - 2]));
+                    System.out.println(Integer.toBinaryString(plaintext[plaintext.length - 1]));
+                    int p = scan.nextInt();
+                    tool.decryption(ciphertxt, p, 99);
                     file.writeCipherTxt(ciphertxt);
                     break;
                 case 0:
