@@ -1,6 +1,4 @@
-import java.util.Date;
 import java.util.Scanner;
-import java.util.concurrent.TimeUnit;
 
 /**
  * PACKAGE_NAME
@@ -10,71 +8,81 @@ import java.util.concurrent.TimeUnit;
 public class Main {
     public static void main(String args[]){
         long startTime, endTime;
-        FileOrganize file = new FileOrganize();
+        String inputFile = "p.txt";
+        FileOrganize file = new FileOrganize(inputFile);
         byte[] plaintext = file.read();
         Scanner scan = new Scanner(System.in);
+        Cryptogram ciphertxt;
         CryptographyTool tool = new CryptographyTool();
+        SignatureHandler toolSign = new SignatureHandler();
+        int[] key;
         boolean finish = true;
+        int g = 0, u = 2, n, hashSize = 0, messageDigest = 0, y = 0;
+        int p = 0, k = 0;
         while (finish) {
             System.out.println("Please choose menu:\n"+
-                    "1.Fast Exponential\n" +
-                    "2.Find Inverse\n" +
-                    "3.Check Generator\n" +
                     "4.Hash Function (Test Beta)\n" +
-                    "5.Elgamal Encryption\n" +
+                    "5.Create Signature\n" +
+                    "6.Verify\n" +
+                    "7.Elgamal Encryption\n" +
                     "0.For Exit Program");
-            int a, b, c;
+
             System.out.print(">> ");
             int choose;
             try {
                 choose = scan.nextInt();
+                System.out.println("size of message block");
+                n = scan.nextInt();
+                System.out.println("size of Hash block");
+                hashSize = scan.nextInt();
+                System.out.println("file name");
+                scan.nextLine();
+                System.out.println("Enter your private key");
+                scan.nextInt();
             } catch (Exception e) {
                 System.err.print(e + "\n");
                 scan.nextLine();//flush data scan
                 continue;
             }
             String result = "";
+            if (p == 0) {
+                p = tool.generateP(n);
+                k = tool.getK(p);
+            }
             startTime = System.currentTimeMillis();
             switch (choose) {
-                case 1:
-                    System.out.print("Base: ");
-                    a = scan.nextInt();
-                    System.out.print("Power: ");
-                    b = scan.nextInt();
-                    System.out.print("Modulo: ");
-                    c = scan.nextInt();
-                    tool.fastExponential(a, b, c);
-                    break;
-
-                case 2:
-                    System.out.print("Inverse of ");
-                    a = scan.nextInt();
-                    System.out.print("Mod ");
-                    b = scan.nextInt();
-                    tool.findInverse(a, b);
-                    break;
-
-                case 3:
-                    System.out.print("Check generator of ");
-                    a = scan.nextInt();
-                    System.out.print("Mod ");
-                    b = scan.nextInt();
-                    tool.checkGenerator(a, b);
-                    break;
                 case 4:
-                    //tool.hashFunction();
-                    tool.lehmanTest(19);
-                    System.out.println("in progress dev");
+                    messageDigest = toolSign.hash(file.CIPHER_FILE, hashSize, p);
                     break;
                 case 5:
-                    int[][] ciphertxt = tool.encryption(plaintext, 99, 23);
-                    System.out.println(ciphertxt[ciphertxt.length - 1][0]);
-                    System.out.println(ciphertxt[ciphertxt.length - 1][1]);
+                    System.out.println("Message Di = " + messageDigest);
+                    toolSign.sign(g, k, p, u, messageDigest, file.SIGNATURE_FILE);
+                    break;
+                case 6:
+                    System.out.println("");
+                    toolSign.verify(g, messageDigest, y, p, file.SIGNATURE_FILE);
+                    break;
+                case 7:
+                    key = tool.genKey(u, k, p);
+                    g = key[1];
+                    y = key[2];
+                    ciphertxt = tool.encryption(plaintext, g, y, k, u, n);
+                    System.out.println(ciphertxt);
+                    System.out.println(ciphertxt.getA());
+                    System.out.println(ciphertxt.getB()[ciphertxt.length() - 2]);
                     System.out.println(Integer.toBinaryString(plaintext[plaintext.length - 2]));
                     System.out.println(Integer.toBinaryString(plaintext[plaintext.length - 1]));
-                    int p = scan.nextInt();
-                    tool.decryption(ciphertxt, p, 99);
                     file.writeCipherTxt(ciphertxt);
+                    byte decrypted[] = tool.decryption(ciphertxt, p, u, n);
+                    int pass = 0;
+                    for (int i = 0; i < plaintext.length; i++) {
+                        if (plaintext[i] == decrypted[i]) pass++;
+                    }
+                    System.out.println("diff of size plaintext " + (plaintext.length - decrypted.length));
+                    System.out.println("correct " + pass + " of " + plaintext.length);
+                    file.write(decrypted);
+
+
                     break;
                 case 0:
                     finish = false;

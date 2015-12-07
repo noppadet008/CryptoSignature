@@ -23,9 +23,11 @@ public class FileOrganize {
 
     private String INPUT_FILE_NAME = "input\\p.pdf";
     private String OUTPUT_FILE_NAME = "output\\output.pdf";
+    public String CIPHER_FILE = "output\\cipher.txt";
+    public String SIGNATURE_FILE = "output\\sign.txt";
+
 
     public FileOrganize() {
-
     }
 
     /**
@@ -146,15 +148,15 @@ public class FileOrganize {
         }
     }
 
-    void writeCipherTxt(int[][] cipherTxt) {
+    void writeCipherTxt(Cryptogram cipherTxt) {
         log("Writing binary file...");
-        String aOutputFileName = "output\\cipher.txt";
+        String aOutputFileName = CIPHER_FILE;
         try (OutputStream output = new BufferedOutputStream(new FileOutputStream(aOutputFileName))) {
-            for (int[] cryptogram : cipherTxt) {
-                String form = String.format("(%d,%d)\n", cryptogram[0], cryptogram[1]);
-                output.write(form.getBytes());
+            output.write((cipherTxt.getA() + " ").getBytes());
+            int[] b = cipherTxt.getB();
+            for (int v : b) {
+                output.write((v + " ").getBytes());
             }
-
         } catch (FileNotFoundException ex) {
             log("File not found.");
         } catch (IOException ex) {

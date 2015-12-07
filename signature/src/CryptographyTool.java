@@ -7,7 +7,12 @@ public class CryptographyTool {
 
     public static void main(String[] arg) {
         CryptographyTool tool = new CryptographyTool();
-        log(tool.fastfac(7, 6, 11));
+        log(tool.fastExpo(7, 6, 11));
+        int b[] = {2};
+        Cryptogram c = new Cryptogram(7, b);
+        byte[] a = tool.decryption(c, 11, 6, 20);
+
+
     }
 
     /**
@@ -64,12 +69,12 @@ public class CryptographyTool {
 
         r = n1 % n2;
         q = n1 / n2;
-
+        /*
         log("n1 n2 r q a1 a2 b1 b2\n----------------------------");
         log(n1 + " " + n2 + " "
                 + r + " " + q + " " + a1 + " " + a2 + " " + b1 + " "
                 + b2);
-
+        *///comment for optimize
         while (r != 0) {
             n1 = n2;
             n2 = r;
@@ -81,18 +86,18 @@ public class CryptographyTool {
             temp_b2 = b2;
             r = n1 % n2;
             q = n1 / n2;
-
+            /*
             log(n1 + " " + n2 + " "
                     + r + " " + q + " " + a1 + " " + a2 + " " + b1 + " "
                     + b2);
-
+             *///comment for optimize
         }
 
 		/*log(n1 + " " + n2 + " " 
             + r + " " + q + " " + a1 + " " + a2 + " " + b1 + " "
-			+ b2);*/
+			+ b2);
 
-        log("");
+        log("");*/
         if (firstNumber == max) {
             //return a2;
             if (a2 < 0) {
@@ -132,14 +137,18 @@ public class CryptographyTool {
         int result, a;
         if (n < 300) {
             for (a = 3; a < n; a++) {
-                result = fastfac(a, power, n);
+                result = fastExpo(a, power, n);
                 isPrime = gcd(a, n) <= 1 && (result == n - 1 || result == 1);
+                if (isPrime) break;
+                ;
             }
         } else {
             for (int b = 0; b < 300; b++) {
                 a = (int) (Math.random() * n);
-                result = fastfac(a, power, n);
+                result = fastExpo(a, power, n);
                 isPrime = gcd(a, n) <= 1 && (result == n - 1 || result == 1);
+                if (isPrime) break;
+                ;
             }
         }
         return isPrime;
@@ -291,7 +300,7 @@ public class CryptographyTool {
 
     private boolean checkGeneratorII(int tester, int mod) {
         if (tester < 0) return false;
-        int result = fastfac(tester, (mod - 1) / 2, mod);
+        int result = fastExpo(tester, (mod - 1) / 2, mod);
         boolean check = result == 1;
         //System.out.println(result); //track result
         return check;
@@ -346,13 +355,9 @@ public class CryptographyTool {
         if (power == 0) return 1;
         int count = power;
         long preOomputation = 1;
-        if (count > 0) {
-            preOomputation *= base;
-            count >>= 1;
-        }
         long result = preOomputation;//prevent overflow
         while (count > 0) {
-            preOomputation *= preOomputation;
+            preOomputation *= base;
             preOomputation %= mod;
             if ((count & 0b1) == 1) {
                 result *= preOomputation;
@@ -361,6 +366,22 @@ public class CryptographyTool {
             count = count >> 1;
         }
         return Math.toIntExact(result);
+    }
+
+    int fastExpo(int a, int b, int p) {
+        return Math.toIntExact(subfastExpo(a, b, p) % p);
+    }
+
+    long subfastExpo(int a, int b, int p) {
+        if (b == 1)
+            return (long) a;
+        if (b == 2)
+            return (long) a * a;
+        if (b % 2 == 0) {
+            return (long) fastExpo(Math.toIntExact(fastExpo(a, b / 2, p)), 2, p) % p;
+        } else {
+            return (long) a * fastExpo(Math.toIntExact(fastExpo(a, (b - 1) / 2, p)), 2, p) % p;
+        }
     }
 
     /**
@@ -398,7 +419,7 @@ public class CryptographyTool {
             pick >>= 1;
         }
         if (i % 2 == 0) i++;
-        log("lehmann testing and increasing when false ");
+        log("lehmann testing and increasing when false i before test = " + i);
         //increse one if not prime
         while (!lehmanTest(i)) {
             i += 2;
@@ -408,92 +429,142 @@ public class CryptographyTool {
     }
 
     /**
-     * @param plaintext a plaintext want to encrypt
-     * @param sk        private key
-     * @param bitCount  a size of bit
-     * @return
+     * @param sk
+     * @param k
+     * @param p
+     * @return (p, g, y)
      */
-    public int[][] encryption(byte[] plaintext, int sk, int bitCount) {
-
-        //create key
-        int p = generateP(bitCount);
-        int count = 0;//count for tracking
-
-        // gen k
-        int k = -1;// -1 mean not init
-        while (k < 1 || gcd(k, p - 1) != 1) {
-            count++;
-            k = (int) ((Math.random() * (p - 2)) + 2);
-        }
-        log("got k false " + count + " time");
-        /*int bitCountP = 0; //no. of bit group
-        while (i > 0) {//count how many bit can assign to 1 block
-            i = i >> 1;
-            bitCountP++;
-        }*/
-        log("gain p = " + p + " group of bit " + bitCount);
-
+    public int[] genKey(int sk, int k, int p) {
         int generator = -1;//not init
-        //prevent generator out of set Z
-        if (generator >= p || generator < 2) {
-            log("not in set Z reset to 0");
-            generator = 2;
-        }
-        count = 0;//reset count for track next
+        int count = 0;//reset count for track next
         while (!checkGeneratorII(generator, p)) {
             count++;
             generator = (int) (Math.random() * p);
         }
         log("generator random false " + count + " time");
         //create public key
-        int y = fastfac(generator, sk, p);
+        int y = fastExpo(generator, sk, p);
         log("generator = " + generator +
                 " k is " + k +
                 " y is " + y);
+        int result[] = {p, generator, y};
+        return result;
+    }
+
+    public int getK(int p) {
+        // gen k
+        int count = 0;
+        int k = -1;// -1 mean not init
+        while (k < 1 || gcd(k, p - 1) != 1) {
+            count++;
+            k = (int) ((Math.random() * (p - 2)) + 2);
+        }
+        log("got k false " + count + " time");
+        return k;
+    }
+
+
+    /**
+     * @param plaintext a plaintext want to encrypt
+     * @param sk        private key
+     * @param bitCount  a size of bit
+     * @return
+     */
+    public Cryptogram encryption(byte[] plaintext, int generator, int y, int k, int sk, int bitCount) {
+
+        //create key
+        int p = generateP(bitCount);
+        int count = 0;//count for tracking
+
+
+        log("gain p = " + p + " group of bit " + bitCount);
 
         int sizeOfCiphertext = (plaintext.length * 8) / bitCount;//byte * 8 / n
         int remindSize = (plaintext.length * 8) % bitCount;//check padding?
-        int cryptogram[][] = new int[sizeOfCiphertext + 1][2];
+        int[] b = new int[sizeOfCiphertext + 2];
+        int[] test = new int[sizeOfCiphertext + 2];
         log("cipher text size is " + sizeOfCiphertext + " remind " + remindSize);
         //encryption
         int index = 0;//for point cryptogram
         int bitPointer = 0;//pointer of bit
         boolean[] block = new boolean[bitCount];//create for exact bit(all value false)
-        int a = fastfac(generator, k, p);
+        int a = fastExpo(generator, k, p);
+        int bPre = fastExpo(y, k, p);
         long cb;//to assigntemp value;
         //iterate all plaintext
-        for (byte b : plaintext) {
-            boolean[] bitGroup = Bit.toBit(b);
+        for (byte byt : plaintext) {
+            boolean[] bitGroup = Bit.toBit(byt);
             for (boolean bit : bitGroup) {
                 block[bitPointer] = bit;
                 bitPointer++;
                 if (bitPointer >= bitCount) {//when collect full block assign to crytogram
-                    cryptogram[index][0] = a;
-                    cb = ((long) Bit.fromBit(block) * fastfac(y, k, p)) % p;
-                    cryptogram[index][1] = Math.toIntExact(cb);
+                    test[index] = Bit.fromBit(block);
+                    cb = ((long) Bit.fromBit(block) * bPre) % p;
+                    b[index] = Math.toIntExact(cb);
                     Arrays.fill(block, false);//fill false for all bit
                     index++;
                     bitPointer = 0;
                 }
             }
         }
-        cryptogram[index][0] = a;
-        cb = ((long) Bit.fromBit(block) * fastfac(y, k, p)) % p;
-        cryptogram[index][1] = Math.toIntExact(cb);
+        Bit.paintByte(block);
+        log("");
+        cb = ((long) Bit.fromBit(block) * bPre) % p;
+        b[index] = Math.toIntExact(cb);
+        index++;
+        cb = ((long) remindSize * fastExpo(y, k, p)) % p;
+        b[index] = Math.toIntExact(cb);
+        System.out.println(a);
+        Cryptogram cryptogram = new Cryptogram(a, b);
         //complete crytogram with padding all
         return cryptogram;
     }
 
 
-    public byte decryption(int[][] cipherText, int p, int u) {
+    public byte[] decryption(Cryptogram cipherText, int p, int u, int n) {
+        int a = cipherText.getA();
+        int[] b = cipherText.getB();
+
+        //decrypt reminder
+        int last = b[cipherText.length() - 1];
+        int c = fastExpo(a, u, p);//a^u
+        c = findInverse(c, p);//(a^u)^-1
+        long reminder = ((long) c * last);
+        reminder %= p;
+        int remind = Math.toIntExact(reminder);
+
+        //decrypt cipher text
+        boolean[] block = new boolean[8];
+        int plaintextSize = ((cipherText.length() - 1) * n / 8);
+        byte[] plaintext = new byte[plaintextSize];
+        int index = n + 1; // point bit in b. n+1 for fetch value
+        int pointer = 0;//point bit in block.
+        int temp = 0;//temp value
+        int i = 0;//index of ciphertext;
+        int byteIndex = 0; // index of plaintext
+        do {
+            if (index >= n) {
+                //decrypt to plain assign in temp
+                temp = b[i];
+                c = fastExpo(a, u, p);
+                c = findInverse(c, p);
+                temp = Math.toIntExact(((long) c * temp) % p);
+                index = 0;
+                i++;
+            }
+            if (pointer >= 8) {
+                plaintext[byteIndex] = Bit.byteFromBit(block);
+                pointer = 0;
+                byteIndex++;
+            }
+            block[pointer] = (temp & (0b1 << index)) != 0;
+            pointer++;
+            index++;
+        } while (i < b.length - 2);
+        // test decode one data
         log("");
-        int a = cipherText[cipherText.length - 1][0];
-        int b = cipherText[cipherText.length - 1][1];
-        int c = fastfac(a, u, p);
-        c = findInverse(c, p);
-        long result = ((long) c * b) % p;
-        System.out.println(Integer.toBinaryString(Math.toIntExact(result)));
-        return 0;
+
+        return plaintext;
     }
 
 

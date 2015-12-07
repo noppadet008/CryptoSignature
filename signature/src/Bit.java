@@ -66,6 +66,18 @@ public class Bit {
         return i;
     }
 
+    public static Byte byteFromBit(boolean[] group) {
+        byte i = 0;
+        if (group != null || group.length <= 8) {
+            i += (group[0]) ? 1 : 0;
+            for (int j = 1; j < group.length; j++) {
+                i <<= 1;
+                i += (group[j]) ? 1 : 0;
+            }
+        }
+        return i;
+    }
+
     public static void paintByte(boolean[] group) {
         for (boolean e : group) {
             System.out.print((e) ? 1 : 0);
