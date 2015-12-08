@@ -10,8 +10,6 @@ public class Main {
     public static void main(String args[]) {
         long startTime, endTime;
         String inputFile = "p.txt";
-        FileOrganize file = new FileOrganize(inputFile);
-        byte[] plaintext = file.read();
         Scanner scan = new Scanner(System.in);
         Cryptogram ciphertxt = null;
         CryptographyTool tool = new CryptographyTool();
@@ -19,15 +17,20 @@ public class Main {
         boolean finish = true;
         int g = 0, u = 0, n = 0, hashSize = 0, messageDigest = 0, y = 0;
         int p = 0, k = 0;
-        try {
-            while (n == 0) {
+        while (n == 0) {
+            try {
                 System.out.println("size of message block");
                 n = scan.nextInt();
+                scan.nextLine();
+                System.out.println("Input file");
+                inputFile = scan.nextLine();
+            } catch (InputMismatchException e) {
+                scan.nextLine();
+                System.err.println(e);
             }
-        } catch (InputMismatchException e) {
-            scan.nextLine();
-            System.err.println(e);
         }
+        FileOrganize file = new FileOrganize(inputFile);
+        byte[] plaintext = file.read();
         while (finish) {
             System.out.println("Please choose menu:\n" +
                     "1.Create key\n" +
@@ -39,7 +42,6 @@ public class Main {
                     "8.Elgamal Decryption\n" +
                     "9.change number of n\n" +
                     "0.For Exit Program");
-
             System.out.print(">> ");
             int choose;
             try {
@@ -103,13 +105,19 @@ public class Main {
                         scan.nextLine();
                         startTime = System.currentTimeMillis();
                         k = tool.getK(p);
-                        ciphertxt = tool.encryption(plaintext, g, y, k, n, p);
+                        ciphertxt = tool.encryption(plaintext, g, y, k, n - 1, p);
                         //print last 16 bit.
                         System.out.println("last plain text 16 bit");
-                        System.out.println(Integer.toBinaryString(plaintext[plaintext.length - 2]));
-                        System.out.println(Integer.toBinaryString(plaintext[plaintext.length - 1]));
+                        System.out.println(Integer.toBinaryString(plaintext[0]));
+                        System.out.println(Integer.toBinaryString(plaintext[1]));
                         file.writeCipherTxt(ciphertxt);
-                        byte decrypted[] = tool.decryption(ciphertxt, p, u, n);
+                        break;
+                    case 8:
+                        ciphertxt = file.readCipherTxt();
+                        System.out.println("insert private key");
+                        u = scan.nextInt();
+                        byte decrypted[] = tool.decryption(ciphertxt, p, u, n - 1);
+                        System.out.println(Integer.toBinaryString(plaintext[plaintext.length - 1]));
                         int pass = 0;
                         for (int i = 0; i < plaintext.length; i++) {
                             if (plaintext[i] == decrypted[i]) pass++;

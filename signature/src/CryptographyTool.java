@@ -7,9 +7,11 @@ public class CryptographyTool {
 
     public static void main(String[] arg) {
         CryptographyTool tool = new CryptographyTool();
-        log(tool.fastExpo(2, 5, 20));
-        log(tool.lehmanTest(1065));
-        log(tool.findInverse(7, 10));
+        byte[] test = {0x00, -1};
+        int[] r = tool.byteToInt(test, 10);
+        test = tool.intToByte(10, r);
+        log(test[0]);
+        log(test[1]);
     }
 
     /**
@@ -556,19 +558,19 @@ public class CryptographyTool {
         boolean[] block = new boolean[8];
         int plaintextSize = ((cipherText.length() - 1) * n / 8);
         byte[] plaintext = new byte[plaintextSize];
-        int index = n + 1; // point bit in b. n+1 for fetch value
+        int index = -1; // point bit in b. n+1 for fetch value
         int pointer = 0;//point bit in block.
         int temp = 0;//temp value
         int i = 0;//index of ciphertext;
         int byteIndex = 0; // index of plaintext
         do {
-            if (index >= n) {
+            if (index < 0) {
                 //decrypt to plain assign in temp
                 temp = b[i];
                 c = fastExpo(a, u, p);
                 c = findInverse(c, p);
                 temp = Math.toIntExact(((long) c * temp) % p);
-                index = 0;
+                index = n - 1;
                 i++;
             }
             if (pointer >= 8) {
@@ -578,11 +580,68 @@ public class CryptographyTool {
             }
             block[pointer] = (temp & (0b1 << index)) != 0;
             pointer++;
-            index++;
-        } while (i < b.length - 2);
-        // test decode one data
+            index--;
+        } while (i < b.length);//b last(rem) = length-1, b last(not full) = length-2 assign and left next.
+        // look for one data
         log("");
+        Bit.paintByte(Bit.toBit(plaintext[0]));
+        return plaintext;
+    }
 
+    int[] byteToInt(byte[] text, int divider) {
+        int sizeOfCiphertext = text.length * 8 / divider;
+        int rem = text.length * 8 % divider;
+        int test[] = new int[sizeOfCiphertext + 2];
+        int bitPointer = 0;
+        boolean[] block = new boolean[divider];
+        int index = 0; // point bit in b. n+1 for fetch value
+
+        for (byte byt : text) {
+            boolean[] bitGroup = Bit.toBit(byt);
+            for (boolean bit : bitGroup) {
+                block[bitPointer] = bit;
+                bitPointer++;
+                if (bitPointer >= divider) {//when collect full block assign to crytogram
+                    test[index] = Bit.fromBit(block);
+                    Arrays.fill(block, false);//fill false for all bit
+                    index++;
+                    bitPointer = 0;
+                }
+            }
+        }
+        test[index] = Bit.fromBit(block);
+        index++;
+        test[index] = rem;
+        return test;
+    }
+
+    byte[] intToByte(int divider, int[] text) {
+        //decrypt cipher text
+        boolean[] block = new boolean[8];
+        int plaintextSize = ((text.length - 1) * divider / 8);
+        byte[] plaintext = new byte[plaintextSize];
+        int index = -1; // point bit in b. -1 for fetch value
+        int pointer = 0;//point bit in block. point from last to frist .
+        int temp = 0;//temp value
+        int i = 0;//index of ciphertext;
+        int byteIndex = 0; // index of plaintext
+        do {
+            if (index < 0) {
+                //decrypt to plain assign in temp
+                temp = text[i];
+                index = divider - 1;
+                i++;
+            }
+            if (pointer >= 8) {
+                plaintext[byteIndex] = Bit.byteFromBit(block);
+                pointer = 0;
+                byteIndex++;
+            }
+            //read form frist bit to last bit.
+            block[pointer] = (temp & (0b1 << index)) != 0;
+            pointer++;
+            index--;
+        } while (i < text.length);//cut last bit already.
         return plaintext;
     }
 

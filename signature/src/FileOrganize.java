@@ -1,13 +1,6 @@
-import java.io.File;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 /**
@@ -149,10 +142,10 @@ public class FileOrganize {
     }
 
     void writeCipherTxt(Cryptogram cipherTxt) {
-        log("Writing binary file...");
+        log("Writing cipher file...");
         String aOutputFileName = CIPHER_FILE;
         try (OutputStream output = new BufferedOutputStream(new FileOutputStream(aOutputFileName))) {
-            output.write((cipherTxt.getA() + " ").getBytes());
+            output.write((cipherTxt.getA() + " ").getBytes("UTF-8"));
             int[] b = cipherTxt.getB();
             for (int v : b) {
                 output.write((v + " ").getBytes());
@@ -163,6 +156,30 @@ public class FileOrganize {
             log(ex);
         }
         log("complete");
+    }
+
+    Cryptogram readCipherTxt() {
+        log("reading cipher text file...");
+        Scanner sc;
+        try {
+            sc = this.getFileReader(CIPHER_FILE);
+            int a = sc.nextInt();
+            int b[];
+            ArrayList<Integer> temp = new ArrayList<>();
+            while (sc.hasNext()) {
+                temp.add(sc.nextInt());
+            }
+            b = new int[temp.size()];
+            for (int t = 0; t < temp.size(); t++) {
+                b[t] = temp.get(t);
+            }
+            return new Cryptogram(a, b);
+        } catch (FileNotFoundException e) {
+            System.out.println("file not found");
+        } catch (InputMismatchException e) {
+            System.out.println("not cipher text file");
+        }
+        return null;
     }
     /**
      * Read the given binary file, and return its contents as a byte array.
@@ -214,14 +231,14 @@ public class FileOrganize {
         return (result!=null)? result.toByteArray() : null ;//if null return (Null pointer case)
     }
 
-    public Scanner getFileReader() {
+    public Scanner getFileReader(String filename) throws FileNotFoundException {
         try {
-            File file = new File(INPUT_FILE_NAME);
+            File file = new File(filename);
             Scanner sc = new Scanner(file);
             return sc;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            return null;
+            throw new FileNotFoundException();
         }
     }
 
