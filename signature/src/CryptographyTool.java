@@ -470,7 +470,7 @@ public class CryptographyTool {
      */
     public Cryptogram intEncryption(int plaintext, int generator, int y, int k, int p) {
         int a = fastExpo(generator, k, p);
-        int b = fastExpo(y, k, p);
+        int b = Math.toIntExact((long) plaintext * fastExpo(y, k, p));
         int listB[] = {b};
         return new Cryptogram(a, listB);
     }
