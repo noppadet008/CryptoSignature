@@ -7,12 +7,8 @@ public class CryptographyTool {
 
     public static void main(String[] arg) {
         CryptographyTool tool = new CryptographyTool();
-        log(tool.fastExpo(7, 6, 11));
-        int b[] = {2};
-        Cryptogram c = new Cryptogram(7, b);
-        byte[] a = tool.decryption(c, 11, 6, 20);
-
-
+        log(tool.fastExpo(2, 5, 120));
+        log(tool.lehmanTest(1065));
     }
 
     /**
@@ -135,20 +131,18 @@ public class CryptographyTool {
         boolean isPrime = true;
         int power = (n - 1) / 2;
         int result, a;
-        if (n < 300) {
+        if (n < 100) {
             for (a = 3; a < n; a++) {
                 result = fastExpo(a, power, n);
                 isPrime = gcd(a, n) <= 1 && (result == n - 1 || result == 1);
-                if (isPrime) break;
-                ;
+                if (!isPrime) break; //break when not test failed.
             }
         } else {
-            for (int b = 0; b < 300; b++) {
+            for (int b = 0; b < 100; b++) {
                 a = (int) (Math.random() * n);
                 result = fastExpo(a, power, n);
                 isPrime = gcd(a, n) <= 1 && (result == n - 1 || result == 1);
-                if (isPrime) break;
-                ;
+                if (!isPrime) break;
             }
         }
         return isPrime;
@@ -252,10 +246,10 @@ public class CryptographyTool {
      * @param tester int - less than z
      * @param z      int - number represent generator set
      */
-    void checkGenerator(int tester, int z) {
+    boolean checkGenerator(int tester, int z) {
         if (tester < 1 || tester > z - 1) {
             log("Tester generator must be in range 0<tester<z ");
-            return;
+            return false;
             // Go to error!
         }
         boolean[] tableGenerator = new boolean[z];
@@ -276,12 +270,12 @@ public class CryptographyTool {
             if (!tableGenerator[valueGeneratorAfterMod]) {
                 tableGenerator[valueGeneratorAfterMod] = true;
             } else {
-                log(tester + " is NON-generator of Z" + z + "*");
+                //          log(tester + " is NON-generator of Z" + z + "*");
                 bomb = true;
-                break;
+                return false;
 
             }
-            log("checkGenerator[" + i + "] = " + valueGeneratorAfterMod);
+            //      log("checkGenerator[" + i + "] = " + valueGeneratorAfterMod);
             //System.out.println(tester + "^" + i + " mod " + z + " = " + valueGeneratorAfterMod);
         }
 
@@ -291,7 +285,10 @@ public class CryptographyTool {
 		}*/
 
         if (!bomb) {
-            log(tester + " is Generator of Z" + z + "*");
+            // log(tester + " is Generator of Z" + z + "*");
+            return true;
+        } else {
+            return false;
         }
 
     } /* end function checkGenerator
@@ -306,45 +303,30 @@ public class CryptographyTool {
         return check;
     } // end function checkGeneratorII
 
-    /*
-      void hashFunction() {
-        hashStorage = new int[6];
-        int hashResultI = 0;
-        for (int i=0;i<6;i++) {
-            hashStorage[i] = scan.nextInt();
-            hashResultI += (Math.pow(hashStorage[i],(i+1)))%23;
-        }
-        hashResultI = hashResultI % 23;
-        log("hashResultI = " + hashResultI);
-        hashResultI = circularShift2(hashResultI);
-        log("hashResultI = " + hashResultI);
-        hashResultI = hashResultI % 23;
-        log("hashResultI = " + hashResultI);
-
-
-    } // end function hashFunction (TEST BETA!!)
-
-      int circularShift2(int number) {
-        for (int i=0; i<2; i++) {
-            if ((16 & number) == 16) {
-                number = ((number - 16) << 1) + 1;
-            }
-            else {
-                number = number << 1;
-            }
-        }
-        return number;
-    } // end function circularShift
-    */
     public static void log(Object anyThings) {
         System.out.println(String.valueOf(anyThings));
     } // end function log
+
+    public int minusMod(int minus, int mod) {
+        //int x, y, z;
+        int a = Math.abs(minus), b = mod;
+
+		/*x = a/b;
+        System.out.println("x = " + x);
+		y = b*(x+1);
+		System.out.println("y = " + y);
+		z = y-a;
+		System.out.println("z = " + z);*/
+        return (b * ((a / b) + 1)) - a;
+
+    } // end function minusMod
+
 
     //Ice part
 
     /**
      * fix index out of bound
-     * of fast factorization
+     * of fast power in binary base
      *
      * @param base  base
      * @param power power
@@ -368,20 +350,27 @@ public class CryptographyTool {
         return Math.toIntExact(result);
     }
 
-    int fastExpo(int a, int b, int p) {
-        return Math.toIntExact(subfastExpo(a, b, p) % p);
-    }
 
-    long subfastExpo(int a, int b, int p) {
-        if (b == 1)
-            return (long) a;
-        if (b == 2)
-            return (long) a * a;
-        if (b % 2 == 0) {
-            return (long) fastExpo(Math.toIntExact(fastExpo(a, b / 2, p)), 2, p) % p;
-        } else {
-            return (long) a * fastExpo(Math.toIntExact(fastExpo(a, (b - 1) / 2, p)), 2, p) % p;
+    /**
+     * base must not exceed result.
+     * ezy copy form net.
+     *
+     * @param base
+     * @param power
+     * @param mod
+     * @return int base^power
+     */
+    int fastExpo(int base, int power, int mod) {
+        int result = 1;
+        int precompu = base;
+        while (power > 0) {//power 0 do nothing
+            if ((power % 2) == 1) {
+                result = Math.toIntExact((long) result * precompu % mod);
+            }
+            precompu = Math.toIntExact((long) precompu * precompu % mod);
+            power >>= 1;
         }
+        return result;
     }
 
     /**
@@ -418,37 +407,41 @@ public class CryptographyTool {
             i += (pick & 0b1);//add LSB
             pick >>= 1;
         }
-        if (i % 2 == 0) i++;
+        if (i % 2 == 0) i++;//plus 1 to odd
         log("lehmann testing and increasing when false i before test = " + i);
         //increse one if not prime
-        while (!lehmanTest(i)) {
+        int count = 0;
+        while (!(lehmanTest(i) && lehmanTest((i - 1) / 2))) { //!1||!2 == !(1&&2)
             i += 2;
-        }
-        log("got p");
+            count++;
+        }//got p is safe Prime
+        log("got p false " +count);
         return i;
     }
 
     /**
-     * @param sk
-     * @param k
-     * @param p
-     * @return (p, g, y)
+     * genkey write on file key.txt.
+     * @param n number group of bit
      */
-    public int[] genKey(int sk, int k, int p) {
+    public void genKey(int n) {
+        int p = generateP(n);
         int generator = -1;//not init
         int count = 0;//reset count for track next
-        while (!checkGeneratorII(generator, p)) {
+        while (!checkGeneratorII(generator, p) || generator < 2) {
             count++;
             generator = (int) (Math.random() * p);
         }
         log("generator random false " + count + " time");
+        //create private key
+        int u = (int) (Math.random() * p);
+        System.out.println("u is "+u);
         //create public key
-        int y = fastExpo(generator, sk, p);
-        log("generator = " + generator +
-                " k is " + k +
-                " y is " + y);
-        int result[] = {p, generator, y};
-        return result;
+        int y = fastExpo(generator, u, p);
+
+        String s = String.format("(p,g,y) is (%d,%d,%d)", p, generator, y);
+        FileOrganize file = new FileOrganize("key.txt");
+        file.write(s.getBytes());
+        log(s);
     }
 
     public int getK(int p) {
@@ -457,12 +450,11 @@ public class CryptographyTool {
         int k = -1;// -1 mean not init
         while (k < 1 || gcd(k, p - 1) != 1) {
             count++;
-            k = (int) ((Math.random() * (p - 2)) + 2);
+            k = (int) ((Math.random() * (p)));
         }
         log("got k false " + count + " time");
         return k;
     }
-
 
     /**
      * @param plaintext a plaintext want to encrypt
@@ -470,14 +462,7 @@ public class CryptographyTool {
      * @param bitCount  a size of bit
      * @return
      */
-    public Cryptogram encryption(byte[] plaintext, int generator, int y, int k, int sk, int bitCount) {
-
-        //create key
-        int p = generateP(bitCount);
-        int count = 0;//count for tracking
-
-
-        log("gain p = " + p + " group of bit " + bitCount);
+    public Cryptogram encryption(byte[] plaintext, int generator, int y, int k, int sk, int bitCount, int p) {
 
         int sizeOfCiphertext = (plaintext.length * 8) / bitCount;//byte * 8 / n
         int remindSize = (plaintext.length * 8) % bitCount;//check padding?
@@ -499,7 +484,7 @@ public class CryptographyTool {
                 bitPointer++;
                 if (bitPointer >= bitCount) {//when collect full block assign to crytogram
                     test[index] = Bit.fromBit(block);
-                    cb = ((long) Bit.fromBit(block) * bPre) % p;
+                    cb = ((long) bPre * Bit.fromBit(block)) % p;
                     b[index] = Math.toIntExact(cb);
                     Arrays.fill(block, false);//fill false for all bit
                     index++;
@@ -512,7 +497,8 @@ public class CryptographyTool {
         cb = ((long) Bit.fromBit(block) * bPre) % p;
         b[index] = Math.toIntExact(cb);
         index++;
-        cb = ((long) remindSize * fastExpo(y, k, p)) % p;
+        //send no. of remindSize
+        cb = ((long) remindSize * bPre) % p;
         b[index] = Math.toIntExact(cb);
         System.out.println(a);
         Cryptogram cryptogram = new Cryptogram(a, b);

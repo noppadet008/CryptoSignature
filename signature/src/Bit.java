@@ -13,11 +13,12 @@ public class Bit {
     }
 
     public static void main(String arg[]){//test toBit method
-        byte test = -1;
+        byte test = 10;
         boolean[] x = toBit(test);
         for(boolean e:x){
             System.out.print((e)?1:0);
         }
+        System.out.println(fromBit(x));
         System.out.println();
         test <<= 2;
         x = toBit(test);

@@ -6,7 +6,7 @@ import java.util.Scanner;
  * 11:09 PM
  */
 public class Main {
-    public static void main(String args[]){
+    public static void main(String args[]) {
         long startTime, endTime;
         String inputFile = "p.txt";
         FileOrganize file = new FileOrganize(inputFile);
@@ -15,16 +15,16 @@ public class Main {
         Cryptogram ciphertxt;
         CryptographyTool tool = new CryptographyTool();
         SignatureHandler toolSign = new SignatureHandler();
-        int[] key;
         boolean finish = true;
         int g = 0, u = 2, n, hashSize = 0, messageDigest = 0, y = 0;
         int p = 0, k = 0;
         while (finish) {
-            System.out.println("Please choose menu:\n"+
-                    "4.Hash Function (Test Beta)\n" +
+            System.out.println("Please choose menu:\n" +
+                    "1.Create key\n" +
                     "5.Create Signature\n" +
                     "6.Verify\n" +
                     "7.Elgamal Encryption\n" +
+                    "8/Elgamal Decryption\n" +
                     "0.For Exit Program");
 
             System.out.print(">> ");
@@ -33,70 +33,82 @@ public class Main {
                 choose = scan.nextInt();
                 System.out.println("size of message block");
                 n = scan.nextInt();
-                System.out.println("size of Hash block");
-                hashSize = scan.nextInt();
-                System.out.println("file name");
-                scan.nextLine();
-                System.out.println("Enter your private key");
-                scan.nextInt();
+                String result = "";
+                switch (choose) {
+                    case 1:
+                        startTime = System.currentTimeMillis();
+                        tool.genKey(n);
+                        break;
+                    case 5://hash+sign
+                        System.out.println("size of Hash block");
+                        hashSize = scan.nextInt();
+                        System.out.println("(p,g,y) is (Insert form 'p' 'g')");
+                        p = scan.nextInt();
+                        g = scan.nextInt();
+                        scan.nextLine();
+                        startTime = System.currentTimeMillis();
+                        k = tool.getK(p);
+                        messageDigest = toolSign.hash(file.CIPHER_FILE, hashSize, p);
+                        System.out.println("Message Di = " + messageDigest);
+                        toolSign.sign(g, k, p, u, messageDigest, file.SIGNATURE_FILE);
+                        break;
+                    case 6://hash+sign
+                        System.out.println("size of Hash block");
+                        hashSize = scan.nextInt();
+                        System.out.println("(p,g,y) is (Insert form 'p' 'g' 'y')");
+                        p = scan.nextInt();
+                        g = scan.nextInt();
+                        y = scan.nextInt();
+                        scan.nextLine();
+                        startTime = System.currentTimeMillis();
+                        messageDigest = toolSign.hash(file.CIPHER_FILE, hashSize, p);//hash
+                        System.out.println("Message Di = " + messageDigest);
+                        toolSign.verify(g, messageDigest, y, p, file.SIGNATURE_FILE);//verify
+                        break;
+                    case 7:
+                        System.out.println("(p,g,y) is (Insert form 'p' 'g' 'y')");
+                        p = scan.nextInt();
+                        g = scan.nextInt();
+                        y = scan.nextInt();
+                        scan.nextLine();
+                        startTime = System.currentTimeMillis();
+                        k = tool.getK(p);
+                        ciphertxt = tool.encryption(plaintext, g, y, k, u, n, p);
+                        //print last 16 bit.
+                        System.out.println("last plain text 16 bit");
+                        System.out.println(Integer.toBinaryString(plaintext[plaintext.length - 2]));
+                        System.out.println(Integer.toBinaryString(plaintext[plaintext.length - 1]));
+                        file.writeCipherTxt(ciphertxt);
+                        byte decrypted[] = tool.decryption(ciphertxt, p, u, n);
+                        int pass = 0;
+                        for (int i = 0; i < plaintext.length; i++) {
+                            if (plaintext[i] == decrypted[i]) pass++;
+                        }
+                        System.out.println("diff of size plaintext " + (decrypted.length - plaintext.length));
+                        System.out.println("correct " + pass + " of " + plaintext.length);
+                        file.write(decrypted);
+                        break;
+                    case 0:
+                        startTime = System.currentTimeMillis();
+                        finish = false;
+                        result = "ขอบคุณที่ใช้บริการค่ะ";
+                        break;
+                    default:
+                        startTime = System.currentTimeMillis();
+                        System.out.println("input error");
+                }
+                endTime = System.currentTimeMillis();
+                String time = String.format("time to use %d m %2d.%d s ",
+                        (int) (((endTime - startTime) / (1000 * 60)) % 60),
+                        (int) (((endTime - startTime) / 1000) % 60),
+                        (int) ((endTime - startTime) % 1000)
+                );
+                System.out.println(time);
+                System.out.println(result);
             } catch (Exception e) {
                 System.err.print(e + "\n");
                 scan.nextLine();//flush data scan
-                continue;
             }
-            String result = "";
-            if (p == 0) {
-                p = tool.generateP(n);
-                k = tool.getK(p);
-            }
-            startTime = System.currentTimeMillis();
-            switch (choose) {
-                case 4:
-                    messageDigest = toolSign.hash(file.CIPHER_FILE, hashSize, p);
-                    break;
-                case 5:
-                    System.out.println("Message Di = " + messageDigest);
-                    toolSign.sign(g, k, p, u, messageDigest, file.SIGNATURE_FILE);
-                    break;
-                case 6:
-                    System.out.println("");
-                    toolSign.verify(g, messageDigest, y, p, file.SIGNATURE_FILE);
-                    break;
-                case 7:
-                    key = tool.genKey(u, k, p);
-                    g = key[1];
-                    y = key[2];
-                    ciphertxt = tool.encryption(plaintext, g, y, k, u, n);
-                    System.out.println(ciphertxt);
-                    System.out.println(ciphertxt.getA());
-                    System.out.println(ciphertxt.getB()[ciphertxt.length() - 2]);
-                    System.out.println(Integer.toBinaryString(plaintext[plaintext.length - 2]));
-                    System.out.println(Integer.toBinaryString(plaintext[plaintext.length - 1]));
-                    file.writeCipherTxt(ciphertxt);
-                    byte decrypted[] = tool.decryption(ciphertxt, p, u, n);
-                    int pass = 0;
-                    for (int i = 0; i < plaintext.length; i++) {
-                        if (plaintext[i] == decrypted[i]) pass++;
-                    }
-                    System.out.println("diff of size plaintext " + (plaintext.length - decrypted.length));
-                    System.out.println("correct " + pass + " of " + plaintext.length);
-                    file.write(decrypted);
-
-
-                    break;
-                case 0:
-                    finish = false;
-                    result = "ขอบคุณที่ใช้บริการค่ะ";
-                    break;
-            }
-            endTime = System.currentTimeMillis();
-            String time = String.format("time to use %d m %2d.%d s ",
-                    (int) (((endTime - startTime) / (1000 * 60)) % 60),
-                    (int) (((endTime - startTime) / 1000) % 60),
-                    (int) ((endTime - startTime) % 1000)
-            );
-            System.out.println(time);
-            System.out.println(result);
         }
 
     }

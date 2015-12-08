@@ -129,7 +129,7 @@ public class SignatureHandler {
         int check = x - u * r;
         int s;
 
-        if (check < 0) s = tool.findInverse(check, p - 1);
+        if (check < 0) s = tool.minusMod(check, p - 1);
         else
             s = check % (p - 1);
         s = (tool.findInverse(k, p - 1)) * s;
