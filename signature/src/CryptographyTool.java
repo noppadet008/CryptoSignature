@@ -7,8 +7,9 @@ public class CryptographyTool {
 
     public static void main(String[] arg) {
         CryptographyTool tool = new CryptographyTool();
-        log(tool.fastExpo(2, 5, 120));
+        log(tool.fastExpo(2, 5, 20));
         log(tool.lehmanTest(1065));
+        log(tool.findInverse(7, 10));
     }
 
     /**
@@ -298,7 +299,7 @@ public class CryptographyTool {
     private boolean checkGeneratorII(int tester, int mod) {
         if (tester < 0) return false;
         int result = fastExpo(tester, (mod - 1) / 2, mod);
-        boolean check = result == 1;
+        boolean check = result != 1;
         //System.out.println(result); //track result
         return check;
     } // end function checkGeneratorII
@@ -370,7 +371,7 @@ public class CryptographyTool {
             precompu = Math.toIntExact((long) precompu * precompu % mod);
             power >>= 1;
         }
-        return result;
+        return result % mod;
     }
 
     /**
@@ -456,13 +457,45 @@ public class CryptographyTool {
         return k;
     }
 
+
     /**
-     * @param plaintext a plaintext want to encrypt
-     * @param sk        private key
-     * @param bitCount  a size of bit
+     * for test encrypt by a int.
+     *
+     * @param plaintext
+     * @param generator
+     * @param y
+     * @param k
+     * @param p
      * @return
      */
-    public Cryptogram encryption(byte[] plaintext, int generator, int y, int k, int sk, int bitCount, int p) {
+    public Cryptogram intEncryption(int plaintext, int generator, int y, int k, int p) {
+        int a = fastExpo(generator, k, p);
+        int b = fastExpo(y, k, p);
+        int listB[] = {b};
+        return new Cryptogram(a, listB);
+    }
+
+    public int intDecryption(Cryptogram cryptogram, int n, int u, int p) {
+        int a = cryptogram.getA();
+        int b = cryptogram.getB()[0];
+        int temp = fastExpo(a, u, p);
+        temp = findInverse(temp, p);
+        int plaintext = Math.toIntExact((long) temp * b % p);
+        return plaintext;
+    }
+
+
+    /**
+     *
+     * @param plaintext
+     * @param generator
+     * @param y
+     * @param k
+     * @param bitCount
+     * @param p
+     * @return
+     */
+    public Cryptogram encryption(byte[] plaintext, int generator, int y, int k, int bitCount, int p) {
 
         int sizeOfCiphertext = (plaintext.length * 8) / bitCount;//byte * 8 / n
         int remindSize = (plaintext.length * 8) % bitCount;//check padding?
