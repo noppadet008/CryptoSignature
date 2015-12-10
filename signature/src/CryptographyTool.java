@@ -441,7 +441,7 @@ public class CryptographyTool {
         //create public key
         int y = fastExpo(generator, u, p);
 
-        String s = String.format("(p,g,y) is (%d,%d,%d)", p, generator, y);
+        String s = String.format("u = %d (p,g,y) is (%d,%d,%d)", u, p, generator, y);
         FileOrganize file = new FileOrganize("key.txt");
         file.write(s.getBytes());
         log(s);

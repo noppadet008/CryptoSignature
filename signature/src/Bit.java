@@ -21,12 +21,12 @@ public class Bit {
         System.out.println(fromBit(x));
         System.out.println();
         test <<= 2;
-        x = toBit(test);
-        for(boolean e:x){
+        boolean[] c = {true};
+        for (boolean e : c) {
             System.out.print((e)?1:0);
         }
         System.out.println();
-        System.out.println(fromBit(x));
+        System.out.println(byteFromBit(c));
     }
     public void setSet(boolean set) {
         this.set = set;

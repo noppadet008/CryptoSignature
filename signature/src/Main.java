@@ -19,14 +19,15 @@ public class Main {
         int p = 0, k = 0;
         while (n == 0) {
             try {
-                System.out.println("size of message block");
+                System.out.println("size of message block (4 - 31 bit)");
                 n = scan.nextInt();
                 scan.nextLine();
-                System.out.println("Input file");
+                System.out.println("File name [Example p.pdf]\n" +
+                        "make sure file has exist in input folder");
                 inputFile = scan.nextLine();
             } catch (InputMismatchException e) {
                 scan.nextLine();
-                System.err.println(e);
+                e.printStackTrace();
             }
         }
         FileOrganize file = new FileOrganize(inputFile);
@@ -36,12 +37,13 @@ public class Main {
                     "1.Create key\n" +
                     "2.Elgamal Encryption [an int]\n" +
                     "3.Elgamal Decryption [an int]\n" +
-                    "5.Create Signature\n" +
-                    "6.Verify\n" +
-                    "7.Elgamal Encryption\n" +
-                    "8.Elgamal Decryption\n" +
+                    "4.Create Signature\n" +
+                    "5.Verify\n" +
+                    "6.Elgamal Encryption\n" +
+                    "7.Elgamal Decryption\n" +
+                    "8.Change input file\n" +
                     "9.change number of n\n" +
-                    "0.For Exit Program");
+                    "0.For Exit Program\n");
             System.out.print(">> ");
             int choose;
             try {
@@ -54,24 +56,25 @@ public class Main {
                         tool.genKey(n);
                         break;
                     case 2:
-                        System.out.println("insert a int to encrytion");
+                        System.out.println("insert a int to encryption");
                         int msg = scan.nextInt();
                         System.out.println("(p,g,y) is (Insert form 'p' 'g' 'y')");
                         p = scan.nextInt();
                         g = scan.nextInt();
                         y = scan.nextInt();
                         scan.nextLine();
-                        //startTime = System.currentTimeMillis();
+                        startTime = System.currentTimeMillis();
                         k = tool.getK(p);
                         ciphertxt = tool.intEncryption(msg, g, y, k, p);
                         System.out.println("cipher text is " + ciphertxt);
                     case 3:
                         System.out.println("insert private key");
                         u = scan.nextInt();
+                        startTime = System.currentTimeMillis();
                         int j = tool.intDecryption(ciphertxt, n, u, p);
                         System.out.println("decrypted got " + j);
                         break;
-                    case 5://hash+sign
+                    case 4://hash+sign
                         System.out.println("size of Hash block");
                         hashSize = scan.nextInt();
                         System.out.println("(p,g,y) is (Insert form 'p' 'g')");
@@ -84,7 +87,7 @@ public class Main {
                         System.out.println("Message Di = " + messageDigest);
                         toolSign.sign(g, k, p, u, messageDigest, file.SIGNATURE_FILE);
                         break;
-                    case 6://hash+sign
+                    case 5://hash+sign
                         System.out.println("size of Hash block");
                         hashSize = scan.nextInt();
                         System.out.println("(p,g,y) is (Insert form 'p' 'g' 'y')");
@@ -97,7 +100,7 @@ public class Main {
                         System.out.println("Message Di = " + messageDigest);
                         toolSign.verify(g, messageDigest, y, p, file.SIGNATURE_FILE);//verify
                         break;
-                    case 7:
+                    case 6:
                         System.out.println("(p,g,y) is (Insert form 'p' 'g' 'y')");
                         p = scan.nextInt();
                         g = scan.nextInt();
@@ -112,22 +115,30 @@ public class Main {
                         System.out.println(Integer.toBinaryString(plaintext[1]));
                         file.writeCipherTxt(ciphertxt);
                         break;
-                    case 8:
+                    case 7:
+                        System.out.println("Please copy cipher text to output folder\n" +
+                                "press enter to continue");
+                        scan.nextLine();
+                        scan.nextLine();
                         ciphertxt = file.readCipherTxt();
                         System.out.println("insert private key");
                         u = scan.nextInt();
+                        System.out.println(" p is ");
+                        p = scan.nextInt();
                         byte decrypted[] = tool.decryption(ciphertxt, p, u, n - 1);
                         System.out.println(Integer.toBinaryString(plaintext[plaintext.length - 1]));
                         int pass = 0;
-                        for (int i = 0; i < plaintext.length; i++) {
-                            if (plaintext[i] == decrypted[i]) pass++;
-                        }
-                        System.out.println("diff of size plaintext " + (decrypted.length - plaintext.length));
-                        System.out.println("correct " + pass + " of " + plaintext.length);
                         file.write(decrypted);
                         break;
+                    case 8:
+                        System.out.println("new File name [Example p.pdf]\n" +
+                                "make sure file has exist in input folder");
+                        scan.nextLine();
+                        inputFile = scan.nextLine();
+                        file = new FileOrganize(inputFile);
+                        break;
                     case 9:
-                        System.out.println("Insert size of message block");
+                        System.out.println("Insert size of message block (can't exceed 31 bit)");
                         n = scan.nextInt();
                         break;
                     case 0:
