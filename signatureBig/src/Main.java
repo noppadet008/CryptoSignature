@@ -35,6 +35,7 @@ public class Main {
         while (finish) {
             System.out.println("Please choose menu:\n" +
                     "1.Create key\n" +
+                    "2.Create Int key\n" +
                     "5.Create Signature\n" +
                     "6.Verify\n" +
                     "7.Elgamal Encryption\n" +
@@ -52,13 +53,21 @@ public class Main {
                         startTime = System.currentTimeMillis();
                         tool.genKey(n);
                         break;
+                    case 2:
+                        System.out.println("Enter number of bit (Integer)");
+                        int z = scan.nextInt();
+                        scan.nextLine();
+                        new GenKeyIntTool().genKey(z);
+                        break;
                     case 5://hash+sign
                         System.out.println("size of Hash block");
                         hashSize = scan.nextInt();
-                        System.out.println("CAUTION!!!!  cannot use key which create in this project");
+                        System.out.println("CAUTION!!!!  cannot use key which create in option 1");
                         System.out.println("(p,g) is (Insert form 'p' 'g')");
                         p = scan.nextInt();
                         g = scan.nextInt();
+                        System.out.println("insert your private key");
+                        u = scan.nextInt();
                         scan.nextLine();
                         startTime = System.currentTimeMillis();
                         k = tool.getKint(p);
@@ -126,7 +135,7 @@ public class Main {
                         result = "ขอบคุณที่ใช้บริการค่ะ";
                         break;
                     default:
-                        System.out.println("input error");
+                        System.out.println("not in the option");
                 }
                 endTime = System.currentTimeMillis();
                 String time = String.format("time to use %d m %2d.%d s ",

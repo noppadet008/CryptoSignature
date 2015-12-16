@@ -8,20 +8,10 @@ public class CryptographyTool {
 
     public static void main(String args[]){
         CryptographyTool tool = new CryptographyTool();
-        BigInteger i;
-        i = new BigInteger("17");
-        System.out.println( tool.fastExpo(new BigInteger("2"), new BigInteger("4"), new BigInteger("1024")));
-        //System.out.println(tool.lehmanTest(i,1024));
 
-        do {
-            i = new BigInteger(1024, new Random());
-        }while (!i.isProbablePrime(1));
-        System.out.println(i);
-        System.out.println(i.isProbablePrime(1));
-
-        boolean b = tool.lehmanTest(i,1024);
-        System.out.println(b);
-        //System.out.println(new BigInteger("3").modInverse(new BigInteger("10")));
+        BigInteger i = new BigInteger("19");
+        BigInteger j = new BigInteger("20");
+        log(tool.findInverse(i, j));
     }
 
 
@@ -32,18 +22,115 @@ public class CryptographyTool {
      * @param anotherNumber BigInteger - a number to find gcd with before param
      * @return a gcd in type BigInteger
      */
-    BigInteger gcd(BigInteger firstNumber, BigInteger anotherNumber) {
-        return firstNumber.gcd(anotherNumber);
+     BigInteger gcd(BigInteger firstNumber,BigInteger anotherNumber) {
+        if (anotherNumber.equals(BigInteger.ZERO)) {
+            return firstNumber;
+        } else if (firstNumber.equals(BigInteger.ZERO)) {
+            return anotherNumber;
+        } else {
+            return gcd(anotherNumber, firstNumber .mod( anotherNumber));
+        }
     } // end funcrion gcd
 
     /**
-     *
+     * plan b for test findInverse logic
      * @param n a bigInt
      * @param p modulator
      * @return n^-1 mod p
      */
-    BigInteger findInverse(BigInteger n,BigInteger p) {
+    BigInteger findInverses(BigInteger n,BigInteger p) {
         return n.modInverse(p);
+    } // end function findInverse
+
+    /**
+     * method to find inverse with extended gcd algorithm</br>
+     *  fix param (change position param isn't same result)
+     * return -1 when can't find inverse.
+     * @param firstNumber   a number
+     * @param anotherNumber a number
+     */
+    BigInteger findInverse(BigInteger firstNumber, BigInteger anotherNumber){
+        if (!gcd( firstNumber,  anotherNumber).equals(BigInteger.ONE)) {
+            log("Can't find inverse because they're not relative prime.");
+            return new BigInteger("-1");
+            // r
+        }
+
+        BigInteger a1, b1, a2, b2, r, q,
+                temp_a2, temp_b2, n1, n2, max, min;
+
+        if (firstNumber.compareTo(anotherNumber) > 0) {
+            max =  firstNumber;
+            min =  anotherNumber;
+            n1 =  firstNumber;
+            n2 =  anotherNumber;
+        } else {
+            max =  anotherNumber;
+            min =  firstNumber;
+            n1 =  anotherNumber;
+            n2 =  firstNumber;
+        }
+
+
+        a1 = BigInteger.ONE;
+        b2 = BigInteger.ONE;
+        b1 = BigInteger.ZERO;
+        a2 = BigInteger.ZERO;
+        temp_a2 = a2;
+        temp_b2 = b2;
+
+        r = n1.mod(n2);
+        q = n1.divide(n2);
+        /*
+        log("n1 n2 r q a1 a2 b1 b2\n----------------------------");
+        log(n1 + " " + n2 + " "
+                + r + " " + q + " " + a1 + " " + a2 + " " + b1 + " "
+                + b2);
+        *///comment for optimize
+        while (!r.equals(BigInteger.ZERO)) {
+            n1 = n2;
+            n2 = r;
+            a2 = a1.subtract(q.multiply( a2));
+            b2 = b1.subtract(q.multiply(b2));
+            a1 = temp_a2;
+            b1 = temp_b2;
+            temp_a2 = a2;
+            temp_b2 = b2;
+            r = n1.mod(n2);
+            q = n1.divide(n2);
+            /*
+            log(n1 + " " + n2 + " "
+                    + r + " " + q + " " + a1 + " " + a2 + " " + b1 + " "
+                    + b2);
+             *///comment for optimize
+        }
+
+		/*log(n1 + " " + n2 + " "
+            + r + " " + q + " " + a1 + " " + a2 + " " + b1 + " "
+			+ b2);
+
+        log("");*/
+        if (firstNumber.equals( max)) {
+            //return a2;
+            if (a2.compareTo(BigInteger.ZERO) < 0) { //compareTo -1 is less than
+                //log("Inverse of " + (int) firstNumber + " mod " +
+                //      (int) anotherNumber + " = " + a2 + " = " + ((int) (a2 - anotherNumber * Math.floor(a2 / anotherNumber))));
+                return anotherNumber.add(a2);
+            } else
+                //log("Inverse of " + (int) firstNumber + " mod " + (int) anotherNumber + " = " + a2);
+                return a2;
+        } else {
+            if (b2.compareTo(BigInteger.ZERO) < 0) {
+                //log("Inverse of " + (int) firstNumber + " mod " +
+                //      (int) anotherNumber + " = " + b2 + " = " + ((int) (b2 - anotherNumber * Math.floor(b2 / anotherNumber))));
+                return anotherNumber.add(b2);
+            } else
+                //log("Inverse of " + (int) firstNumber + " mod " + (int) anotherNumber + " = " + b2);
+                return b2;
+        }
+
+        //System.out.println(n2 == a2*max+b2*min);
+
     } // end function findInverse
 
     /**
@@ -297,7 +384,7 @@ public class CryptographyTool {
         BigInteger c = fastExpo(a, u, p);//a^u
         c = findInverse(c, p);//(a^u)^-1
         BigInteger reminder = c.multiply(last).mod(p);
-
+        log("Decryping...");
         //decrypt cipher text
         boolean[] block = new boolean[8];
         int plaintextSize = ((cipherText.length() - 1) * n / 8);
