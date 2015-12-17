@@ -247,4 +247,20 @@ public class FileOrganize {
         System.out.println(String.valueOf(aThing));
     }
 
+    public int readPrivateKey() {
+        int u = 0;
+        try {
+            Scanner readfile = new Scanner(new FileInputStream("output\\keyOP.txt"));
+            readfile.next();
+            readfile.next();
+            u = readfile.nextInt();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return u;
+
+
+    }
+
 }

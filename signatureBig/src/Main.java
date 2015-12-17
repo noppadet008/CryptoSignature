@@ -66,8 +66,11 @@ public class Main {
                         System.out.println("(p,g) is (Insert form 'p' 'g')");
                         p = scan.nextInt();
                         g = scan.nextInt();
+                        /*
                         System.out.println("insert your private key");
                         u = scan.nextInt();
+                        */
+                        u = file.readPrivateKey();
                         scan.nextLine();
                         startTime = System.currentTimeMillis();
                         k = tool.getKint(p);
