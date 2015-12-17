@@ -12,8 +12,11 @@ public class SignatureHandler {
      */
     public int hash(String filename, int numberOfBlock, int p) {
         String ciphertext;
+        System.out.println("reading file");
         ciphertext = readCipher(filename);
+        System.out.println("padding");
         ciphertext = pad(ciphertext, numberOfBlock);
+        System.out.println("hashing");
         return polyHash(ciphertext, numberOfBlock, p);
     } // end function hash
 
@@ -24,9 +27,8 @@ public class SignatureHandler {
             BufferedReader rfi = new BufferedReader(new FileReader(filename));
             int d = 0;
             String connect = "";
-            while (d != -1) {
-                d = rfi.read();
-                connect = String.valueOf(d);
+            while (connect != null) {
+                connect = rfi.readLine();
                 ciphertext = ciphertext + connect;
             }
         } catch (Exception e) {
@@ -124,6 +126,7 @@ public class SignatureHandler {
 
     public void sign(int g, int k, int p, int u, int x, String fileSignature) {
         CryptographyTool tool = new CryptographyTool();
+        System.out.println("Fast Expo");
         int r = tool.fastExpoInt(g, k, p);
 
         int check = x - u * r;
@@ -132,6 +135,7 @@ public class SignatureHandler {
         if (check < 0) s = tool.minusModInt(check, p - 1);
         else
             s = check % (p - 1);
+        System.out.println("find inverse");
         s = (tool.findInverseInt(k, p - 1)) * s;
         s %= (p - 1);
 
