@@ -301,7 +301,7 @@ public class CryptographyTool {
         //create public key
         BigInteger y = fastExpo(generator, u, p);
 
-        String s = String.format("(p,g,y) is %d\n%d\n%d\n", p, generator, y);
+        String s = String.format("(p,g,y) is %d \n%d \n%d\n", p, generator, y);
         FileOrganize file = new FileOrganize("PublicKey.txt");
         file.write(s.getBytes());
         file = new FileOrganize("SecertKey.txt");

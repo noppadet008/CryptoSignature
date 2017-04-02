@@ -80,6 +80,8 @@ public class Main {
                         System.out.println("(p,g,y) is (Insert form 'p' 'g')");
                         p = scan.nextInt();
                         g = scan.nextInt();
+                        System.out.println("insert private key");
+                        u = scan.nextInt();
                         scan.nextLine();
                         startTime = System.currentTimeMillis();
                         k = tool.getK(p);
@@ -87,7 +89,7 @@ public class Main {
                         System.out.println("Message Di = " + messageDigest);
                         toolSign.sign(g, k, p, u, messageDigest, file.SIGNATURE_FILE);
                         break;
-                    case 5://hash+sign
+                    case 5://hash+verify
                         System.out.println("size of Hash block");
                         hashSize = scan.nextInt();
                         System.out.println("(p,g,y) is (Insert form 'p' 'g' 'y')");

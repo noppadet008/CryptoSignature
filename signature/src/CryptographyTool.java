@@ -7,11 +7,8 @@ public class CryptographyTool {
 
     public static void main(String[] arg) {
         CryptographyTool tool = new CryptographyTool();
-        byte[] test = {0x00, -1};
-        int[] r = tool.byteToInt(test, 10);
-        test = tool.intToByte(10, r);
-        log(test[0]);
-        log(test[1]);
+        log(tool.fastExpo(2,4,1024));
+        log(tool.findInverse(19,20));
     }
 
     /**

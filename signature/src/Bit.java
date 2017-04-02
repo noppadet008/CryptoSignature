@@ -57,7 +57,7 @@ public class Bit {
      */
     public static int fromBit(boolean[] group) {
         int i = 0;
-        if (group != null || group.length < 32) {
+        if (group != null && group.length < 32) {
             i += (group[0]) ? 1 : 0;
             for (int j = 1; j < group.length; j++) {
                 i <<= 1;
@@ -69,7 +69,7 @@ public class Bit {
 
     public static Byte byteFromBit(boolean[] group) {
         byte i = 0;
-        if (group != null || group.length <= 8) {
+        if (group != null && group.length <= 8) {
             i += (group[0]) ? 1 : 0;
             for (int j = 1; j < group.length; j++) {
                 i <<= 1;
